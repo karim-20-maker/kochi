@@ -224,11 +224,12 @@ async function idbDel(id){const db=await idb();return new Promise((res,rej)=>{co
 async function idbClear(){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction("p","readwrite");t.objectStore("p").clear();t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
 let shT=null;
 function shareSoon(){clearTimeout(shT);shT=setTimeout(pushShare,1500)}
+function shareName(){const P=S.profile,u=S.user||{};return String(P.name||u.displayName||(u.email||"").split("@")[0]||"").slice(0,30)}
 function pushShare(){
   const P=S.profile,mc=P.myCoach;if(!S.user||!S.fb||!mc||!mc.u||!P.share)return;
   const days=[];for(let i=0;i<7;i++){const d=addDays(todayStr(),-i),x=S.days[d];if(!x)continue;const t=totals(x);days.push({d:d,k:r0(t.k),p:r0(t.p),c:r0(t.c),f:r0(t.f),w:x.water||0,s:x.sleep==null?null:x.sleep,st:x.steps||0,t:x.tType||"",n:(x.meals||[]).length})}
   const tg=targetsFor(todayStr());
-  S.fb.db.doc("shares/"+S.user.uid).set({coachUid:mc.u,name:P.name||"",goal:P.goal,tk:tg.kcal,tp:tg.protein,wg:WG(),w:curWeight(),days:days,lastMsg:lastClientMsg(),updated:Date.now()}).catch(()=>{});
+  S.fb.db.doc("shares/"+S.user.uid).set({coachUid:mc.u,name:shareName(),goal:P.goal,tk:tg.kcal,tp:tg.protein,wg:WG(),w:curWeight(),days:days,lastMsg:lastClientMsg(),updated:Date.now()}).catch(()=>{});
 }
 function lastClientMsg(){const a=(S.msgs||[]).filter(m=>m.from==="client");const m=a[a.length-1];return m?{at:m.at,text:String(m.text).slice(0,80)}:null}
 const msgCol=id=>S.fb.db.collection("shares/"+id+"/msgs");
@@ -617,7 +618,7 @@ function startClients(){
     softRender()},()=>{S.clientsErr=1;render()}));
 }
 function viewClients(){
-  const ac=S.profile.asCoach;let h='<header class="top"><div class="min0"><h1>عملائي</h1><p class="sub">المشتركين اللي سجّلوا بالكود بتاعك وتحديثاتهم.</p></div>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</header>';
+  const ac=S.profile.asCoach;let h='<header class="top"><div class="min0"><h1>عملائي</h1><p class="sub">المشتركين اللي سجّلوا بالكود بتاعك وتحديثاتهم.</p></div></header>';
   if(!S.fb||!S.user)return h+card('<p class="sub">لوحة العملاء محتاجة حساب مسجّل (مش الوضع التجريبي).</p>');
   if(S.clientsErr)h+=card('<p class="msg">مقدرتش أحمّل العملاء. اتأكد إن الـ rules الجديدة اتنشرت في Firebase.</p>');
   const today=todayStr(),cl=(S.clients||[]).slice();
@@ -1280,7 +1281,7 @@ function obView(){
   let b="";
   if(st===0)b='<p class="lb">هتستخدم كوتشي كـ:</p><div class="chips">'+obChip("role","user","مستخدم عادي",d.role==="user")+obChip("role","coach","كوتش (عندي مشتركين)",d.role==="coach")+'</div>'
     +(d.role==="coach"?'<p class="sub">هنعملك كود دعوة تديه لمشتركينك، وهيبعتولك تقاريرهم وأسئلتهم على واتساب. كمّل بياناتك الشخصية كمان عشان تستخدم التطبيق لنفسك.</p>'+inp("cn","اسمك ككوتش","text")+inp("cp","رقم واتساب (مثلا 01012345678)","tel",'inputmode="tel"'):inp("cc","كود الكوتش بتاعك (لو عندك، اختياري)","text")+(looksCode(d.cc)?'<p class="sub">هنتأكد من الكود ونسألك على الموافقة بعد التسجيل.</p>':""))
-    +'<p class="sub">كام سؤال سريع عشان نظبطلك الخطة على قدك.</p>'+inp("name","اسمك (اختياري)","text",'autocomplete="given-name"')
+    +'<p class="sub">كام سؤال سريع عشان نظبطلك الخطة على قدك.</p>'+inp("name","اسمك (الكوتش بيشوفه)","text",'autocomplete="given-name"')
     +'<p class="lb">إنت:</p><div class="chips">'+obChip("sex","m","راجل",d.sex==="m")+obChip("sex","f","ست",d.sex==="f")+'</div>'
     +'<div class="grid2">'+inp("birth","شهر وسنة الميلاد","month")+inp("height","الطول (سم)","number",'inputmode="numeric"')+inp("weight","الوزن (كجم)","number",'inputmode="decimal" step="0.1"')+'</div>';
   else if(st===1)b='<p class="lb">طبيعة شغلك وحركتك في اليوم:</p><div class="chips">'+Object.keys(JOBS).map(k=>obChip("job",k,JOBS[k].t,d.job===k)).join("")+'</div>'
@@ -1307,6 +1308,7 @@ function obView(){
 function obValid(){
   const d=S.ob.d,st=S.ob.step;
   if(st===0){
+    if(!(d.name||"").trim()){toast("اكتب اسمك");return false}
     if(!(Number(d.weight)>=30&&Number(d.weight)<=250)){toast("اكتب وزنك بالكيلو");return false}
     if(!(Number(d.height)>=100&&Number(d.height)<=230)){toast("اكتب طولك بالسنتيمتر");return false}
     if(d.role==="coach"){if(!(d.cn||"").trim()){toast("اكتب اسمك كوتش");return false}if(!waNum(d.cp)){toast("رقم الواتساب مش صح");return false}}
