@@ -227,3 +227,7 @@ body.kb .app{padding-bottom:24px}
 .mgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
 .mgh span{color:var(--muted);flex:1}
 .mgh .x{width:auto;height:30px;padding:0 10px;font-size:12px}
+@media (min-width:700px){
+  .ov{align-items:center;padding:24px}
+  .sheet{border-radius:20px;max-height:86dvh;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+}
