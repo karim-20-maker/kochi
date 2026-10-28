@@ -314,7 +314,10 @@ function viewToday(){
     const id=s[0];
     const logged=(day.meals||[]).map((m,i)=>({m,i})).filter(x=>x.m.slot===id);
     const sk=logged.reduce((a,x)=>a+x.m.k,0);
-    const entries=logged.map(x=>'<div class="ent"><div class="nm"><b>'+esc(x.m.name)+'</b><span>'+esc(x.m.q||"")+(x.m.q?" · ":"")+r0(x.m.k)+' سعر · '+r0(x.m.p)+' بروتين</span></div><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح">×</button></div>').join("");
+    const entries=logged.map(x=>{const m=x.m;
+      if(m.parts&&m.parts.length>1)return '<div class="mgrp"><div class="mgh"><b>'+esc(m.title||"وجبة")+'</b><span>'+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح الوجبة كلها">مسح الكل</button></div>'
+        +m.parts.map((p,j)=>'<div class="ent"><div class="nm"><b>'+esc(p.nm)+'</b><span>'+esc(p.q||"")+(p.q?" · ":"")+r0(p.k)+' سعر · '+r0(p.p)+' بروتين</span></div><button class="x" data-act="delPart" data-v="'+x.i+':'+j+'" aria-label="شيل '+esc(p.nm)+'">×</button></div>').join("")+'</div>';
+      return '<div class="ent"><div class="nm"><b>'+esc(m.name)+'</b><span>'+esc(m.q||"")+(m.q?" · ":"")+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span></div><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح">×</button></div>'}).join("");
     if(id==="m"){h+=drinksCard(day,res,logged,sk,entries);return}
     if(id==="p"&&actv.indexOf("p")<0&&!logged.length)return;
     const opts=plan[id]||[];
@@ -795,6 +798,7 @@ function bItem(bl){
   const m=macro(o[0],grams);
   return{nm,label,q,k:m.k,p:m.p,c:m.c,f:m.f,gid:g.id,oid:o[0],raw:grams,cooked:!!(g.ck&&!o[2]&&bl.cook)};
 }
+const partOf=x=>({nm:x.nm,q:x.q,k:r0(x.k),p:r1(x.p),c:r1(x.c),f:r1(x.f)});
 const bSum=a=>a.reduce((t,x)=>{t.k+=x.k;t.p+=x.p;t.c+=x.c;t.f+=x.f;return t},{k:0,p:0,c:0,f:0});
 function bPrevText(){const it=bItem(S.sheet.bl);return it?r0(it.k)+" سعر · "+r0(it.p)+" بروتين · "+r0(it.c)+" كارب · "+r0(it.f)+" دهون":"اختار الكمية"}
 function bTotHtml(){
@@ -1122,6 +1126,10 @@ function act(name,t){
       S.profile.cf.push({id:"cf_"+uid(),n:f.n,k:f.k,p:f.p,c:f.c,f:f.f,u:[]});syncCustom();saveProfile();toast("اتحفظ في أصنافي");break}
     case"quickDrink":{const f=FOOD[v];if(!f)return;const g=f.srv?100:f.u[0][1],m=macro(v,g);
       addMeal(S.date,"m",{name:f.n,q:qtyText(v,g),k:r0(m.k),p:r1(m.p),c:r1(m.c),f:r1(m.f)});break}
+    case"delPart":{const a=String(v).split(":"),mi=Number(a[0]),pj=Number(a[1]);mut(S.date,d=>{const m=d.meals[mi];if(!m||!m.parts)return;m.parts.splice(pj,1);if(!m.parts.length){d.meals.splice(mi,1);return}
+      const t=m.parts.reduce((z,x)=>{z.k+=x.k;z.p+=x.p;z.c+=x.c;z.f+=x.f;return z},{k:0,p:0,c:0,f:0});m.k=r0(t.k);m.p=r1(t.p);m.c=r1(t.c);m.f=r1(t.f);
+      m.name=(m.title&&m.title!=="وجبة"?m.title+": ":"")+m.parts.map(x=>x.nm).join(" + ");m.q=m.parts.map(x=>x.q).join(" + ");
+      if(m.parts.length===1){m.name=m.parts[0].nm;m.q=m.parts[0].q;delete m.parts}});break}
     case"delMeal":mut(S.date,d=>{d.meals.splice(Number(v),1)});break;
     case"openSheet":openSheet(v,t.dataset.t);break;
     case"closeSheet":closeSheet();break;
@@ -1143,11 +1151,11 @@ function act(name,t){
     case"rcpBack":S.sheet.rcp=null;paintBuild();break;
     case"rcpCopy":copyText(S.sheet.rcp.list[S.sheet.rcp.i].txt).then(ok=>toast(ok?"اتنسخت الوصفة":"انسخها يدوي"));break;
     case"rcpLog":{const sh=S.sheet,bl=sh.bl,r=sh.rcp.list[sh.rcp.i],t=bSum(bl.items);
-      addMeal(S.date,sh.slot,{name:(r.t+": "+bl.items.map(x=>x.nm).join(" + ")).slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)});closeSheet();break}
+      addMeal(S.date,sh.slot,{parts:bl.items.map(partOf),title:r.t,name:(r.t+": "+bl.items.map(x=>x.nm).join(" + ")).slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)});closeSheet();break}
     case"bdel":{S.sheet.bl.items.splice(Number(v),1);paintBuild();break}
     case"bAdd":{const bl=S.sheet.bl,it=bItem(bl);if(!it){toast("اختار الكمية الأول");return}bl.items.push(it);bl.grp=null;bl.opt=null;bl.amt="";bl.cvn="";bl.cvk="";paintBuild();break}
     case"bLog":{const sh=S.sheet,bl=sh.bl;if(!bl.items.length)return;const t=bSum(bl.items);
-      const mm={name:bl.items.map(x=>x.nm).join(" + ").slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)};
+      const mm={parts:bl.items.map(partOf),title:"وجبة",name:bl.items.map(x=>x.nm).join(" + ").slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)};
       if(bl.fav){S.profile.fav=S.profile.fav||{};const a=(S.profile.fav[sh.slot]=S.profile.fav[sh.slot]||[]);a.push({id:uid(),n:mm.name,q:mm.q,k:mm.k,p:mm.p,c:mm.c,f:mm.f});if(a.length>12)a.shift();saveProfile()}
       addMeal(S.date,sh.slot,mm);closeSheet();break}
     case"recentAdd":{const sh=S.sheet,m=sh.recent[Number(v)];if(!m)return;addMeal(S.date,sh.slot,{name:m.name,q:m.q||"",k:m.k,p:m.p,c:m.c,f:m.f});closeSheet();break}
