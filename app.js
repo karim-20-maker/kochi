@@ -218,7 +218,8 @@ const CLOUD_KEYS=["asCoach","myCoach","share","coachMode"];
 function pushCloud(){
   if(!S.fb||!S.user)return;const P=S.profile;
   const d={email:S.user.email||"",name:P.name||"",goal:P.goal||"",created:P.created||Date.now(),seen:P.seen||Date.now(),asCoach:P.asCoach||null,myCoach:P.myCoach||null,share:!!P.share,coachMode:P.coachMode||"gpt"};
-  S.fb.db.doc("users/"+S.user.uid).set(d).catch(()=>{});
+  if(P.onboarded){try{d.prof=JSON.parse(JSON.stringify(P))}catch(e){}}
+  S.fb.db.doc("users/"+S.user.uid).set(d,{merge:true}).catch(()=>{});
 }
 let cloudT=null;const cloudSoon=()=>{clearTimeout(cloudT);cloudT=setTimeout(pushCloud,1200)};
 function saveDay(d){sched();shareSoon()}
@@ -1299,7 +1300,9 @@ async function migrateCloud(u){
   const d=sn.data();
   if(S.user!==u)return;
   const legacy=d.weight!=null||d.height!=null||d.onboarded;
-  if(!legacy){CLOUD_KEYS.forEach(k=>{if(d[k]!==undefined)S.profile[k]=d[k]});if(d.created)S.profile.created=d.created;return}
+  if(!legacy){
+    if(d.prof&&d.prof.onboarded){S.profile=Object.assign({},DEF,d.prof);S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});lsSave()}
+    CLOUD_KEYS.forEach(k=>{if(d[k]!==undefined)S.profile[k]=d[k]});if(d.created)S.profile.created=d.created;return}
   S.profile=Object.assign({},DEF,d);S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});
   try{const q=await base.collection("days").orderBy("d","desc").limit(150).get();q.docs.forEach(x=>{S.days[x.id]=clone(x.data())})}catch(e){}
   try{const q=await base.collection("body").orderBy("d","desc").limit(200).get();q.docs.forEach(x=>{S.body[x.id]=clone(x.data())})}catch(e){}
