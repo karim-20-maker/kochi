@@ -19,7 +19,10 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const DAYN=["الأحد","الاتنين","التلات","الأربع","الخميس","الجمعة","السبت"];
 const SH=["أحد","اتنين","تلات","أربع","خميس","جمعة","سبت"];
 const MON=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-const TT={back_chest:"ضهر وبنش",arms_shoulders:"دراعات وكتف",legs:"رجل",abs:"بطن",push:"دفع (صدر وكتف وتراي)",pull:"سحب (ضهر وباي)",upper:"علوي",lower:"سفلي",full:"جسم كامل",cardio:"كارديو",sport:"رياضة",rest:"راحة"};
+const TT={back_chest:"ضهر وبنش",arms_shoulders:"دراعات وكتف",legs:"رجل",abs:"بطن",push:"دفع (صدر وكتف وتراي)",pull:"سحب (ضهر وباي)",upper:"علوي",lower:"سفلي",full:"جسم كامل",cardio:"كارديو",sport:"رياضة",swim:"سباحة",run:"جري",football:"كورة",handball:"كرة يد",basketball:"كرة سلة",tennis:"تنس",padel:"بادل",cycling:"دراجة",martial:"فنون قتالية",yoga:"يوغا وبيلاتس",other_sport:"رياضة تانية",rest:"راحة"};
+const ACT=["run","swim","football","handball","basketball","tennis","padel","cycling","martial","yoga","other_sport"];
+const isAct=k=>ACT.indexOf(k)>=0;
+const MET={swim:7,run:9.5,football:8,handball:8,basketball:7,tennis:7,padel:6,cycling:7,martial:8,yoga:3,other_sport:6,cardio:7,sport:6};
 const SPLITS={bro:{t:"ضهر وبنش / دراعات وكتف / رجل / بطن",k:["back_chest","arms_shoulders","legs","abs"]},ppl:{t:"دفع / سحب / رجل",k:["push","pull","legs"]},ul:{t:"علوي / سفلي",k:["upper","lower"]},full:{t:"جسم كامل",k:["full"]},cardio:{t:"كارديو أو جري",k:["cardio"]},sport:{t:"رياضة تانية (كورة، سباحة...)",k:["sport"]}};
 let CYCLE=SPLITS.bro.k;
 function applySplit(){CYCLE=(SPLITS[S.profile.split]||SPLITS.bro).k}
@@ -32,7 +35,7 @@ const GOALS={
   keep:{t:"تثبيت وتحسين الشكل",m:1,d:"سعرات الثبات مع بروتين عالي وتمرين منتظم."},
   bulk:{t:"بناء عضل نضيف",m:1.08,d:"زيادة بسيطة عشان العضل من غير دهون كتير."}
 };
-const DEF={name:"",sex:"m",weight:70,height:170,birth:"1995-01",goal:"cut",job:"desk",gymDays:3,split:"bro",sport:"",likes:[],avoid:"",notes:"",out:{},onboarded:false,waterCups:0,fav:{},cf:[],rem:1,coachMode:"gpt",myCoach:null,asCoach:null,
+const DEF={name:"",sex:"m",weight:70,height:170,birth:"1995-01",goal:"cut",job:"desk",gymDays:3,split:"bro",sport:"",acts:[],likes:[],avoid:"",notes:"",out:{},onboarded:false,waterCups:0,fav:{},cf:[],rem:1,coachMode:"gpt",myCoach:null,asCoach:null,
   sch:{wake:"07:00",sleep:"23:30",b:"09:00",l:"14:00",p:"17:30",d:"21:00"}};
 function waNum(s){let d=String(s||"").replace(/[^\d]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.length===11&&d[0]==="0")d="20"+d.slice(1);return /^\d{8,15}$/.test(d)?d:""}
 function coachCode(n,p,u){const j=JSON.stringify({n:n,p:p,u:u||""});return "K"+btoa(unescape(encodeURIComponent(j))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
@@ -164,17 +167,21 @@ function calc(training,P,wt){
   return{bmr:Math.round(bmr),kcal,protein,fat,carbs};
 }
 function suggestTrain(date){
-  const P=S.profile,gd=P.gymDays==null?3:P.gymDays;
+  const P=S.profile,gd=P.gymDays==null?3:P.gymDays,acts=P.acts||[];
   const prev=[1,2,3,4,5,6,7].map(i=>S.days[addDays(date,-i)]);
   const tr=prev.map(d=>!!(d&&d.trained));
   const cnt=tr.filter(Boolean).length;
+  const gymCnt=prev.filter(d=>d&&d.trained&&!isAct(d.tType)).length;
+  const cur=S.days[date];
+  const fixed=acts.find(a=>(a.days||[]).indexOf(dow(date))>=0);
+  if(fixed&&!(cur&&cur.tType==="rest"))return{train:true,type:fixed.k,why:"",cnt,act:true};
   let last=null;for(const d of prev){if(d&&d.trained&&CYCLE.indexOf(d.tType)>=0){last=d.tType;break}}
   const type=last?CYCLE[(CYCLE.indexOf(last)+1)%CYCLE.length]:CYCLE[0];
   let train=true,why="";
   const run=gd>=6?3:2;
-  if(gd===0){train=false;why="إنت مش بتتمرن حاليا"}
+  if(gd===0){train=false;why=acts.length?"مفيش رياضة في جدولك النهاردة":"إنت مش بتتمرن حاليا"}
   else if(tr.slice(0,run).every(Boolean)){train=false;why="اتمرنت "+run+" أيام ورا بعض"}
-  else if(cnt>=gd){train=false;why="خلصت "+gd+(gd<=10?" تمارين":" تمرين")+" الأسبوع ده"}
+  else if(gymCnt>=gd){train=false;why="خلصت "+gd+(gd<=10?" تمارين":" تمرين")+" الأسبوع ده"}
   return{train,type,why,cnt};
 }
 function isTrainDay(date){const d=S.days[date];if(d&&d.tType==="rest")return false;if(d&&d.trained)return true;return suggestTrain(date).train}
@@ -287,9 +294,16 @@ function viewToday(){
   h+='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button class="up" data-act="water" data-v="1" aria-label="أكتر">+</button><b>'+(day.water||0)+'</b><button class="dn" data-act="water" data-v="-1" aria-label="أقل">−</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
     +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button class="up" data-act="sleep" data-v="0.5" aria-label="أكتر">+</button><b>'+(day.sleep==null?"–":day.sleep)+'</b><button class="dn" data-act="sleep" data-v="-0.5" aria-label="أقل">−</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
     +'<div class="tile"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>';
-  const types=["back_chest","arms_shoulders","legs","abs","rest"];
+  const main=[];(S.profile.gymDays>0?CYCLE:[]).concat((S.profile.acts||[]).map(a=>a.k)).forEach(k=>{if(main.indexOf(k)<0)main.push(k)});
+  if(day.tType&&day.tType!=="rest"&&main.indexOf(day.tType)<0)main.push(day.tType);
+  if(sug.train&&main.indexOf(sug.type)<0)main.push(sug.type);
+  const more=ACT.concat(["cardio"]).filter(k=>main.indexOf(k)<0);
+  const types=main.concat(["rest"]);
   const sugText=day.tType?(day.tType==="rest"?"سجّلت النهاردة راحة.":"سجّلت: "+TT[day.tType]+" ✓"):(sug.train?"المقترح النهاردة: "+TT[sug.type]:"المقترح النهاردة: راحة ("+sug.why+")");
-  h+=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p><div class="chips">'+types.map(t=>'<button class="chip'+((!day.tType&&((t==="rest"&&!sug.train)||(t===sug.type&&sug.train)))?" sug":"")+'" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>').join("")+'</div>'
+  const mins=day.mins||0,burn=(day.tType&&day.tType!=="rest"&&mins>0)?r0((MET[day.tType]||5)*curWeight()*mins/60):0;
+  h+=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p><div class="chips">'+types.map(t=>'<button class="chip'+((!day.tType&&((t==="rest"&&!sug.train)||(t===sug.type&&sug.train)))?" sug":"")+'" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>').join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
+    +(S.ui.moreAct?'<div class="chips">'+more.map(t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>').join("")+'</div>':"")
+    +(day.tType&&day.tType!=="rest"?'<p class="lb">المدة (دقيقة):</p><div class="chips">'+[30,45,60,90,120].map(n=>'<button class="chip" aria-pressed="'+(mins===n)+'" data-act="tmin" data-v="'+n+'">'+n+'</button>').join("")+'</div>'+(burn?'<p class="hint">حرق تقريبي حوالي '+burn+' سعر (تقدير، ومش بنزوده على سعراتك لأن هدفك محسوب لأيام التمرين أصلا).</p>':""):"")
     +'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>');
   const plan=planFor(date),actv=activeSlots(date);
   h+='<h2 style="margin-top:4px">الأكل والمشروبات</h2>';
@@ -419,7 +433,7 @@ function viewTrain(){
   h+=card('<h2>آخر 7 أيام</h2><div class="dots">'+days.map(d=>'<div class="dot'+((S.days[d]&&S.days[d].trained)?" on":"")+'"><i></i><span>'+SH[dow(d)]+'</span></div>').join("")+'</div>'
    +'<div class="kpis"><div class="kpi"><b class="num">'+cnt+'</b><span>تمرين (هدفك '+(gd==null?3:gd)+')</span></div><div class="kpi"><b class="num">'+avg(sl,"sleep")+'</b><span>متوسط النوم</span></div><div class="kpi"><b class="num">'+(st.length?r0(st.reduce((s,x)=>s+x.steps,0)/st.length):"–")+'</b><span>متوسط الخطوات</span></div></div>');
   h+=card('<h2>النهاردة</h2><p>'+(sug.train?'المقترح: <b>'+TT[sug.type]+'</b>':'المقترح: <b>راحة</b> ('+esc(sug.why)+')')+'</p><p class="sub">ترتيبك: '+CYCLE.map(k=>TT[k]).join(" ← ")+'. بين كل يومين تمرين متتاليين يوم راحة أو مشي. تقدر تغيّر التقسيمة وعدد الأيام من إعدادات التقدم.</p>'
-    +'<button class="btn ghost" data-act="tab" data-v="today">سجّل التمرين في النهاردة</button>');
+    +((S.profile.acts||[]).length?'<p class="sub">رياضاتك: '+S.profile.acts.map(a=>esc(TT[a.k])+((a.days||[]).length?" ("+a.days.map(n=>DAYN[n]).join("، ")+")":"")).join(" | ")+'</p>':"")+'<button class="btn ghost" data-act="tab" data-v="today">سجّل التمرين في النهاردة</button>');
   h+=card('<h2>بعيد عن الجيم</h2>'+det("tr1","مشي وخطوات","<p>8000 إلى 10000 خطوة في اليوم. لو شغلك قدام الشاشة، قوم كل ساعة 5 دقايق.</p><p>في أيام الراحة، مشي هادي 20 إلى 30 دقيقة بيحرق دهون من غير ما يتعب العضل.</p>")
     +det("tr2","النوم والراحة","<p>7 إلى 8 ساعات. قلة النوم بتزوّد الجوع وبتقلل الطاقة والأداء.</p>")
     +det("tr3","بعد التمرين","<p>وجبة فيها بروتين (فراخ أو لحمة أو سمك أو زبادي يوناني أو بيض) في خلال ساعتين، ومياه كتير.</p>"));
@@ -549,7 +563,7 @@ function dayEnded(date){
 }
 function ctxText(){
   const P=S.profile,date=S.date,tg=targetsFor(date),day=peek(date),tot=totals(day),L=[],sp=SPLITS[P.split]||SPLITS.bro;
-  L.push("بياناتي: "+(P.sex==="f"?"ست":"راجل")+" "+ageFrom(P.birth)+" سنة، الوزن "+curWeight()+" كجم، الطول "+P.height+" سم. شغلي: "+(JOBS[P.job]||JOBS.desk).t+". بتمرن "+(P.gymDays||0)+" أيام في الأسبوع"+(P.gymDays>0?" ("+sp.t+")":"")+(P.sport?"، ونشاط تاني: "+P.sport:"")+". الهدف: "+(GOALS[P.goal]||GOALS.cut).t+".");
+  L.push("بياناتي: "+(P.sex==="f"?"ست":"راجل")+" "+ageFrom(P.birth)+" سنة، الوزن "+curWeight()+" كجم، الطول "+P.height+" سم. شغلي: "+(JOBS[P.job]||JOBS.desk).t+". بتمرن "+(P.gymDays||0)+" أيام في الأسبوع"+(P.gymDays>0?" ("+sp.t+")":"")+(P.sport?"، ونشاط تاني: "+P.sport:"")+((P.acts||[]).length?"، ورياضات: "+P.acts.map(a=>TT[a.k]+((a.days||[]).length?" ("+a.days.map(n=>DAYN[n]).join(" و")+")":"")).join("، "):"")+". الهدف: "+(GOALS[P.goal]||GOALS.cut).t+".");
   if((P.likes||[]).length)L.push("بحب آكل: "+P.likes.join("، ")+".");
   if(P.avoid)L.push("مبحبش أو ممنوع عليا: "+P.avoid+".");
   if(P.notes)L.push("ملاحظات مني: "+P.notes);
@@ -1040,7 +1054,11 @@ function act(name,t){
     case"dtoday":S.date=todayStr();render();break;
     case"water":mut(S.date,d=>{d.water=clamp((d.water||0)+Number(v),0,30)});break;
     case"sleep":mut(S.date,d=>{const s=d.sleep==null?7:d.sleep;d.sleep=clamp(s+Number(v),3,12)});break;
-    case"ttype":mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false}else{d.tType=v;d.trained=v!=="rest"}});break;
+    case"ttype":mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false;d.mins=0}else{d.tType=v;d.trained=v!=="rest";if(v==="rest")d.mins=0}});break;
+    case"tmin":mut(S.date,d=>{d.mins=d.mins===Number(v)?0:Number(v)});break;
+    case"moreAct":S.ui.moreAct=!S.ui.moreAct;render();break;
+    case"obAct":{const a=S.ob.d.acts,i=a.findIndex(x=>x.k===v);if(i>=0)a.splice(i,1);else a.push({k:v,days:[]});render();break}
+    case"obActDay":{const a=S.ob.d.acts.find(x=>x.k===t.dataset.k);if(a){const n=Number(v),i=a.days.indexOf(n);if(i>=0)a.days.splice(i,1);else a.days.push(n)}render();break}
     case"planEat":{const pm=PM[v],f=Number(t.dataset.f)||1,items=scaleItems(pm.it,f),m=sumItems(items);
       addMeal(S.date,t.dataset.s,{name:pm.n,q:items.map(x=>FOOD[x[0]].n.split(" (")[0]+" "+x[1]).slice(0,3).join(" + "),k:r0(m.k),p:r1(m.p),c:r1(m.c),f:r1(m.f),plan:v});break}
     case"planAlt":{const k=S.date+t.dataset.s,len=(planFor(S.date)[t.dataset.s]||[]).length||1,cur=S.alt[k]!=null?S.alt[k]:(S.best[k]||0);S.alt[k]=(cur+1)%len;render();break}
@@ -1292,7 +1310,7 @@ async function wipeAll(){
 /* ---------- onboarding wizard ---------- */
 const OB_LIKES=["فراخ","لحمة","سمك","تونة","بيض","جبنة وألبان","بقوليات (فول وعدس وحمص)","خضار","فاكهة","رز ومكرونة","أكل مصري"];
 const OB_STEPS=["أهلا بيك في كوتشي","شغلك ونشاطك","هدفك وأكلك","مواعيدك","جاهز نبدأ"];
-function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC()),role:P.asCoach?"coach":"user",cn:(P.asCoach&&P.asCoach.n)||P.name||"",cp:"",cc:S.pendCoach||""}}}
+function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",acts:clone(P.acts||[]),likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC()),role:P.asCoach?"coach":"user",cn:(P.asCoach&&P.asCoach.n)||P.name||"",cp:"",cc:S.pendCoach||""}}}
 const obChip=(k,v,l,on)=>'<button class="chip" aria-pressed="'+on+'" data-act="obSet" data-k="'+k+'" data-v="'+esc(v)+'">'+l+'</button>';
 function obView(){
   const o=S.ob||(S.ob=obInit()),d=o.d,st=o.step;
@@ -1305,7 +1323,9 @@ function obView(){
     +'<div class="grid2">'+inp("birth","شهر وسنة الميلاد","month")+inp("height","الطول (سم)","number",'inputmode="numeric"')+inp("weight","الوزن (كجم)","number",'inputmode="decimal" step="0.1"')+'</div>';
   else if(st===1)b='<p class="lb">طبيعة شغلك وحركتك في اليوم:</p><div class="chips">'+Object.keys(JOBS).map(k=>obChip("job",k,JOBS[k].t,d.job===k)).join("")+'</div>'
     +'<p class="lb">بتتمرن كام يوم في الأسبوع؟</p><div class="chips">'+[0,1,2,3,4,5,6,7].map(n=>obChip("gymDays",String(n),n===0?"مش بتمرن":String(n),d.gymDays===n)).join("")+'</div>'
-    +(d.gymDays>0?'<p class="lb">تقسيمتك:</p><div class="chips">'+Object.keys(SPLITS).map(k=>obChip("split",k,SPLITS[k].t,d.split===k)).join("")+'</div>'+inp("sport","نشاط أو رياضة تانية (اختياري)","text"):"");
+    +(d.gymDays>0?'<p class="lb">تقسيمتك:</p><div class="chips">'+Object.keys(SPLITS).map(k=>obChip("split",k,SPLITS[k].t,d.split===k)).join("")+'</div>'+inp("sport","ملاحظات تانية عن نشاطك (اختياري)","text"):"")
+    +'<p class="lb">بتلعب رياضة تانية؟ (سباحة، كورة، جري، تنس...) اختار وحدد الأيام:</p><div class="chips">'+ACT.map(k=>'<button class="chip" aria-pressed="'+d.acts.some(a=>a.k===k)+'" data-act="obAct" data-v="'+k+'">'+TT[k]+'</button>').join("")+'</div>'
+    +d.acts.map(a=>'<p class="lb">أيام '+TT[a.k]+':</p><div class="chips">'+[6,0,1,2,3,4,5].map(n=>'<button class="chip" aria-pressed="'+(a.days.indexOf(n)>=0)+'" data-act="obActDay" data-k="'+a.k+'" data-v="'+n+'">'+SH[n]+'</button>').join("")+'</div>').join("");
   else if(st===2)b='<p class="lb">هدفك:</p><div class="chips">'+Object.keys(GOALS).map(k=>obChip("goal",k,GOALS[k].t,d.goal===k)).join("")+'</div><p class="sub">'+esc((GOALS[d.goal]||GOALS.cut).d)+'</p>'
     +'<p class="lb">بتحب تاكل إيه؟ (اختار اللي يناسبك)</p><div class="chips">'+OB_LIKES.map(x=>'<button class="chip" aria-pressed="'+(d.likes.indexOf(x)>=0)+'" data-act="obTog" data-v="'+esc(x)+'">'+x+'</button>').join("")+'</div>'
     +inp("avoid","حاجات مبتاكلهاش أو عندك حساسية منها (اختياري)","text");
@@ -1340,7 +1360,7 @@ function obValid(){
 }
 function obDone(){
   const d=S.ob.d,P=S.profile,wt=Number(d.weight),changed=wt!==curWeight();
-  Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
+  Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),acts:clone(d.acts||[]).filter(a=>isAct(a.k)),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
   if(d.role==="coach"){P.asCoach=Object.assign({},P.asCoach,{n:d.cn.trim().slice(0,40),p:waNum(d.cp),u:S.user?S.user.uid:""});startClients()}else if(P.asCoach&&d.role==="user")P.asCoach=null;
   if((d.cc||"").trim()){const cc=d.cc;resolveCoach(cc).then(o=>{if(o){askCoach(o);S.pendCoach=null;try{localStorage.removeItem("kochi-coach")}catch(e){}}else toast("كود الكوتش ده مش موجود");render()}).catch(()=>{S.pendCoach=cc;try{localStorage.setItem("kochi-coach",cc)}catch(e){}toast("هنربط الكوتش لما النت يرجع")})}
   saveProfile();
