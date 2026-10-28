@@ -1,0 +1,12 @@
+{
+  "appId": "com.karim.kochi",
+  "appName": "كوتشي",
+  "webDir": "www",
+  "backgroundColor": "#F1F4F0",
+  "server": {
+    "url": "https://karim-20-maker.github.io/kochi/",
+    "androidScheme": "https",
+    "allowNavigation": ["karim-20-maker.github.io", "*.firebaseapp.com", "*.googleapis.com", "*.gstatic.com"]
+  },
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,73 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "android-wrapper/**"
+      - ".github/workflows/android.yml"
+      - "icons/**"
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Capacitor and add Android platform
+        working-directory: android-wrapper
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+
+      - name: App icon
+        working-directory: android-wrapper
+        run: |
+          pip install pillow
+          python3 - <<'PY'
+          import os, glob
+          from PIL import Image
+          src = Image.open("../icons/icon-512.png").convert("RGBA")
+          sizes = {"mdpi":48,"hdpi":72,"xhdpi":96,"xxhdpi":144,"xxxhdpi":192}
+          res = "android/app/src/main/res"
+          for f in glob.glob(res + "/mipmap-anydpi-v26/*"):
+              os.remove(f)
+          for d, px in sizes.items():
+              out = f"{res}/mipmap-{d}"
+              os.makedirs(out, exist_ok=True)
+              im = src.resize((px, px), Image.LANCZOS)
+              for name in ("ic_launcher.png", "ic_launcher_round.png", "ic_launcher_foreground.png"):
+                  im.save(f"{out}/{name}")
+          PY
+
+      - name: Build debug APK
+        working-directory: android-wrapper/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kochi-apk
+          path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish release with APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk kochi.apk
+          gh release delete apk-latest --yes --cleanup-tag || true
+          gh release create apk-latest kochi.apk --title "Kochi Android APK" --notes "Debug APK built from main. Install on Android (allow unknown sources)." --prerelease
