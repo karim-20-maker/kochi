@@ -55,7 +55,10 @@ h3{font-family:var(--font-display);font-weight:700;font-size:15px;margin:0}
 .inp{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;min-height:44px;width:100%;min-width:0;font-size:15px}
 textarea.inp{resize:vertical;min-height:84px}
 label.lb{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid2>*{min-width:0}
+.grid2 .lb{display:block;min-height:2.6em}
+select.inp{width:100%;min-width:0;text-overflow:ellipsis}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 
 /* today summary */
@@ -165,8 +168,8 @@ table.t td,table.t th{padding:6px 4px;border-top:1px solid var(--line);text-alig
 .edit{background:var(--accent-soft);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .viewer{background:var(--surface);border-radius:18px;max-width:520px;width:100%;max-height:100%;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
 .viewer img{width:100%;border-radius:12px;display:block}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:60;font-weight:700;max-width:88%;font-size:14px;text-align:center}
-@media (prefers-reduced-motion:no-preference){.toast{animation:tin .2s ease-out}@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:60;font-weight:700;max-width:88%;font-size:14px;text-align:center}
+@media (prefers-reduced-motion:no-preference){.toast{animation:tin .2s ease-out}@keyframes tin{from{opacity:0;transform:translate(-50%,-8px)}}}
 .msg{color:var(--bad);font-weight:700}
 .authhead{text-align:center;padding:8px 0}
 .authhead h1{font-family:var(--font-display);font-size:34px;margin:0}
@@ -199,7 +202,7 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 
 .stp{flex-direction:column;gap:4px;width:100%}
 .stp button{width:100%;min-height:46px;border-radius:12px;font-size:24px;touch-action:manipulation}
-.stp button.up{background:var(--accent,var(--surface2));color:var(--on-accent,var(--ink))}
+.stp button.up{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .stp button:active{transform:scale(.96)}
 .stp b{font-size:24px;min-width:0;padding:2px 0}
 .ehd{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -209,3 +212,9 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .rl{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:6px;line-height:1.6}
 .btn.cook{background:var(--accent);color:#fff;width:100%}
 .toast{pointer-events:none}
+
+/* keyboard open: hide the fixed bottom bar so it never covers inputs and buttons */
+body.kb .nav{display:none}
+body.kb .app{padding-bottom:24px}
+.sheet{max-height:92dvh}
+@supports not (height:1dvh){.sheet{max-height:90%}}

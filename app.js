@@ -536,7 +536,7 @@ function viewProgress(){
   h+=card('<h2>بياناتك وأهدافك</h2><div class="grid2"><div><label class="lb" for="pfw">الوزن الأساسي (كجم)</label><input class="inp" id="pfw" data-in="pf" data-k="weight" type="number" inputmode="decimal" step="0.1" value="'+P.weight+'"></div>'
     +'<div><label class="lb" for="pfh">الطول (سم)</label><input class="inp" id="pfh" data-in="pf" data-k="height" type="number" inputmode="numeric" value="'+P.height+'"></div>'
     +'<div><label class="lb" for="pfb">شهر الميلاد</label><input class="inp" id="pfb" data-in="pf" data-k="birth" type="month" value="'+esc(P.birth)+'"></div>'
-    +'<div><label class="lb" for="pfg">الهدف</label><select class="inp" id="pfg" data-in="pf" data-k="goal">'+Object.keys(GOALS).map(k=>'<option value="'+k+'"'+(P.goal===k?" selected":"")+'>'+GOALS[k].t+'</option>').join("")+'</select></div>'
+    +'<div style="grid-column:1/-1"><label class="lb" for="pfg">الهدف</label><select class="inp" id="pfg" data-in="pf" data-k="goal">'+Object.keys(GOALS).map(k=>'<option value="'+k+'"'+(P.goal===k?" selected":"")+'>'+GOALS[k].t+'</option>').join("")+'</select></div>'
     +'<div><label class="lb" for="pfwc">هدف المياه (كوباية 250 مل)</label><input class="inp" id="pfwc" data-in="pf" data-k="waterCups" type="number" inputmode="numeric" placeholder="تلقائي: '+WG()+'" value="'+(P.waterCups>0?P.waterCups:"")+'"></div></div>'
     +'<p class="sub">'+esc(g.d)+'</p>'
     +'<div class="kpis"><div class="kpi"><b class="num">'+tg.kcal+'</b><span>سعر يوم تمرين</span></div><div class="kpi"><b class="num">'+tr.kcal+'</b><span>سعر يوم راحة</span></div><div class="kpi"><b class="num">'+tg.protein+'</b><span>جم بروتين</span></div></div>'
@@ -1427,4 +1427,9 @@ if("serviceWorker" in navigator&&/^https?:/.test(location.protocol)){window.addE
 init();
 setInterval(checkReminders,30000);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){S.wakeAsked=false;return}setTimeout(()=>{checkWake();checkReminders()},300)});
+})();
+/* detect on-screen keyboard (viewport shrinks) */
+(function(){const vv=window.visualViewport;if(!vv)return;let base=vv.height;
+  const f=()=>{try{const kb=vv.height<Math.min(base,window.innerHeight)*0.78&&/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||"");document.body.classList.toggle("kb",!!kb)}catch(e){}};
+  vv.addEventListener("resize",f);document.addEventListener("focusout",()=>setTimeout(f,150));window.addEventListener("orientationchange",()=>{setTimeout(()=>{base=vv.height;f()},400)});
 })();
