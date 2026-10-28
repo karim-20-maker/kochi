@@ -1010,7 +1010,7 @@ function reportHtml(date){
    +(miss.length?'<p class="sub">وجبات مسجلتهاش: '+miss.join("، ")+'.</p>':"")
    +'<div class="plan"><span class="pn">الخلاصة</span>'+L.map(x=>'<div class="pi"><span>'+esc(x)+'</span></div>').join("")+'</div>'
    +'<p class="sub">بكرة: '+(ns.train?"المقترح تمرين "+TT[ns.type]:"المقترح راحة ("+ns.why+")")+'.</p>'
-   +(S.profile.myCoach?'<div class="row"><button class="btn" data-act="coachDay" data-d="'+date+'">ابعت تفاصيل يومي لكوتشي ('+esc(S.profile.myCoach.n)+')</button></div><div class="row"><button class="btn ghost" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي ChatGPT في يومك</button></div>'
+   +(S.profile.myCoach?(function(){const mc=S.profile.myCoach,inApp=mc.u&&S.profile.share;return '<div class="cmsg"><h3>ابعت لكوتشك ('+esc(mc.n)+')</h3><label class="lb" for="flMsg">رسالة (اختياري)</label><textarea class="inp" id="flMsg" data-in="msgd" placeholder="اكتب أي حاجة تحب كوتشك يعرفها عن يومك">'+esc(S.ui.msgDraft||"")+'</textarea><label class="chk"><input type="checkbox" data-in="flRep"'+(S.ui.flRep===false?"":" checked")+'> ضيف تفاصيل يومي (أكل، سعرات، مياه، نوم، تمرين)</label><div class="row">'+(inApp?'<button class="btn" data-act="coachDay" data-v="app" data-d="'+date+'">ابعت في التطبيق</button>':'')+'<button class="btn'+(inApp?' ghost':'')+'" data-act="coachDay" data-v="wa" data-d="'+date+'">ابعت على واتساب</button></div></div><div class="row"><button class="btn ghost" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي ChatGPT في يومك</button></div>'})()
      :'<div class="row"><button class="btn" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي الكوتش في يومك</button></div>');
 }
 function briefHtml(date,slept){
@@ -1221,9 +1221,10 @@ function act(name,t){
       S.profile.sl={asleep:true,day:d,at:n.getTime()};saveProfile();
       S.rmOpen=null;drawRem();S.wakeAsked=true;S.flow={k:"report",date:d};drawFlow();render();break}
     case"flowClose":S.flow=null;drawFlow();break;
-    case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,txt=waReportText(d);
-      if(mc.u&&S.profile.share&&S.user){sendMsg("client",S.user.uid,txt.slice(0,990)).then(ok=>{if(ok){S.flow=null;drawFlow();S.tab="coach";S.ui.msgDraft="";toast("اتبعت لكوتشك "+mc.n);render()}})}
-      else{S.flow=null;drawFlow();window.open(waUrl(mc.p,txt),"_blank","noopener")}
+    case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,note=(S.ui.msgDraft||"").trim(),txt=(note?note+"\n\n":"")+(S.ui.flRep===false?"":waReportText(d));
+      if(!txt.trim()){toast("اكتب رسالة أو سيب تفاصيل اليوم متعلّم");break}
+      if(t.dataset.v==="app"&&mc.u&&S.profile.share&&S.user){sendMsg("client",S.user.uid,txt.slice(0,990)).then(ok=>{if(ok){S.flow=null;drawFlow();S.tab="coach";S.ui.msgDraft="";toast("اتبعت لكوتشك "+mc.n);render()}})}
+      else{S.ui.msgDraft="";S.flow=null;drawFlow();window.open(waUrl(mc.p,txt),"_blank","noopener")}
       break}
     case"coachFromFlow":{S.date=(S.profile.sl&&S.profile.sl.day)||S.date;S.flow=null;promptModal("تقييم يومك",coachPrompt("day"));break}
     case"wakeNo":S.flow=null;drawFlow();break;
@@ -1249,6 +1250,7 @@ function onInput(t,commit){
     case"cfi":S.ui.cf=S.ui.cf||{};S.ui.cf[t.dataset.k]=t.value;break;
     case"bfav":if(sh&&sh.bl)sh.bl.fav=t.checked;break;
     case"msgd":S.ui.msgDraft=t.value;break;
+    case"flRep":S.ui.flRep=t.checked;break;
     case"thd":S.ui.thDraft=t.value;break;
     case"cn":case"ck":case"cp":case"cc":case"cf":if(sh)sh[k]=t.value;break;
     case"bw":case"bwaist":case"bchest":case"barm":S.ui[k]=t.value;break;

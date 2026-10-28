@@ -231,3 +231,5 @@ body.kb .app{padding-bottom:24px}
   .ov{align-items:center;padding:24px}
   .sheet{border-radius:20px;max-height:86dvh;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 }
+.cmsg{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.cmsg h3{margin:0;font-size:15px}
