@@ -278,7 +278,7 @@ function stopMsgs(){if(S.msgUn){S.msgUn();S.msgUn=null}S.msgsOn=0;S.msgs=[]}
 function bubbles(list,me){return list.length?'<div class="chat" id="thr">'+list.map(m=>'<div class="bub '+(m.from===me?'u':'a')+'">'+esc(m.text)+'<br><small style="opacity:.7">'+esc(new Date(m.at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</small></div>').join("")+'</div>':'<p class="hint">مفيش رسايل لسه.</p>'}
 async function sendMsg(from,uid,text){
   text=(text||"").trim().slice(0,1000);if(!text||!S.fb||!S.user)return false;
-  try{await msgCol(uid).add({from:from,text:text,at:Date.now()});if(from==="client"){S.msgs=(S.msgs||[]).concat([{from:"client",text:text,at:Date.now()}]);shareSoon()}return true}
+  try{await msgCol(uid).add({from:from,text:text,at:Date.now()});if(from==="client"){shareSoon()}return true}
   catch(e){toast("مقدرتش أبعت الرسالة. جرّب تاني");return false}
 }
 function askCoach(o){if(o.u&&S.user){S.ui.consent=o}else{S.profile.myCoach=o;S.profile.coachMode="both";saveProfile()}}
@@ -676,9 +676,9 @@ function viewClients(){
   h+=card('<h2>النهاردة</h2><p class="sub">'+(cl.length?logged+' من '+cl.length+' سجّلوا النهاردة.':'لسه محدش اتربط بيك.')+'</p>');
   cl.forEach(c=>{
     const rd=+(function(){try{return localStorage.getItem('kochi-rd-'+c.id)||0}catch(e){return 0}})(),unread=!!(c.lastMsg&&c.lastMsg.at>rd&&S.thId!==c.id),t=td(c),ds=c.days||[],n=ds.length,avgK=n?r0(ds.reduce((a,x)=>a+x.k,0)/n):0,avgP=n?r0(ds.reduce((a,x)=>a+x.p,0)/n):0,open=S.ui.open&&S.ui.open[c.id];
-    h+=card('<div class="row" style="justify-content:space-between;align-items:center"><h2>'+esc(c.name||"مشترك")+'</h2><span class="tag" style="background:'+(t?'var(--accent-soft)':'var(--surface2)')+'">'+(t?'سجّل النهاردة':'لسه مسجلش')+'</span></div>'
+    h+=card('<div class="row" style="justify-content:space-between;align-items:center"><h2>'+esc(c.name||"مشترك")+'</h2><span class="tag" style="background:'+(t?'var(--accent-soft)':'var(--surface2)')+'">'+(t?'سجّل النهاردة':(ds.length?'آخر تسجيل '+esc(ds.map(x=>x.d).sort().pop().slice(5)):'اتربط، لسه مبدأش يسجل'))+'</span></div>'
       +'<p class="sub">'+esc((GOALS[c.goal]||GOALS.cut).t)+' | الوزن '+esc(c.w||"-")+' كجم</p>'
-      +(t?'<div class="grid2"><div>سعرات: <b>'+t.k+'</b> / '+c.tk+'</div><div>بروتين: <b>'+t.p+'</b> / '+c.tp+'</div><div>مياه: <b>'+t.w+'</b> / '+c.wg+'</div><div>نوم: <b>'+(t.s==null?"-":t.s)+'</b> | خطوات '+t.st+'</div><div>تمرين: <b>'+(t.t?(TT[t.t]||t.t):"لسه")+'</b></div></div>':'<p class="hint">مفيش تسجيل لليوم ده لسه.</p>')
+      +(t?'<div class="grid2"><div>سعرات: <b>'+t.k+'</b> / '+c.tk+'</div><div>بروتين: <b>'+t.p+'</b> / '+c.tp+'</div><div>مياه: <b>'+t.w+'</b> / '+c.wg+'</div><div>نوم: <b>'+(t.s==null?"-":t.s)+'</b> | خطوات '+t.st+'</div><div>تمرين: <b>'+(t.t?(TT[t.t]||t.t):"لسه")+'</b></div></div>':'<p class="hint">'+(n?'مسجلش حاجة النهاردة لسه.':'مفيش أي تسجيل لحد دلوقتي. هيظهر هنا أول ما يسجل أول يوم.')+'</p>')
       +'<p class="hint">متوسط آخر '+n+' أيام مسجلة: '+avgK+' سعر | '+avgP+' جم بروتين. آخر تحديث: '+esc(new Date(c.updated||0).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</p>'
       +(unread?'<p class="msg">رسالة جديدة: '+esc(c.lastMsg.text)+'</p>':'')+'<div class="row"><button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button><button class="btn sm" data-act="thOpen" data-v="'+esc(c.id)+'">'+(S.thId===c.id?"إخفاء الرسايل":"رسايل")+(unread?" (جديد)":"")+'</button></div>'+(S.thId===c.id?'<div>'+bubbles(S.thMsgs||[],"coach")+'<textarea class="inp" id="thIn" data-in="thd" placeholder="اكتب رد للعميل">'+esc(S.ui.thDraft||"")+'</textarea><div class="row"><button class="btn sm" data-act="thSend" data-v="'+esc(c.id)+'">ابعت</button></div></div>':"")
       +(open?'<div class="scroll"><table class="tbl"><thead><tr><th>اليوم</th><th>سعرات</th><th>بروتين</th><th>مياه</th><th>نوم</th><th>تمرين</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+esc(x.d.slice(5))+'</td><td>'+x.k+'</td><td>'+x.p+'</td><td>'+x.w+'</td><td>'+(x.s==null?"-":x.s)+'</td><td>'+(x.t?esc(TT[x.t]||x.t):"-")+'</td></tr>').join("")+'</tbody></table></div>':""));
