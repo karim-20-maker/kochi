@@ -531,7 +531,7 @@ function kcalChart(){
 const PLAB={front:"قدام",side:"جنب",back:"ورا"};
 function viewProgress(){
   const date=todayStr(),b=S.body[date]||{},P=S.profile,tg=calc(true),tr=calc(false);
-  let h='<header class="top"><div class="min0"><h1>التقدم</h1><p class="sub">الوزن والقياسات والصور.</p></div>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</header>';
+  let h='<header class="top"><div class="min0"><h1>التقدم</h1><p class="sub">الوزن والقياسات والصور.</p></div></header>';
   h+=card('<h2>سجّل النهاردة</h2><div class="grid2"><div><label class="lb" for="bw">الوزن (كجم)</label><input class="inp" id="bw" data-in="bw" type="number" inputmode="decimal" step="0.1" value="'+esc(S.ui.bw||b.w||"")+'"></div>'
     +'<div><label class="lb" for="bwaist">الوسط عند السرة (سم)</label><input class="inp" id="bwaist" data-in="bwaist" type="number" inputmode="decimal" step="0.5" value="'+esc(S.ui.bwaist||b.waist||"")+'"></div>'
     +'<div><label class="lb" for="bchest">الصدر (سم)</label><input class="inp" id="bchest" data-in="bchest" type="number" inputmode="decimal" step="0.5" value="'+esc(S.ui.bchest||b.chest||"")+'"></div>'
@@ -578,7 +578,7 @@ function viewProgress(){
     +'<p class="hint">أي تغيير في وزنك أو هدفك أو نشاطك بيحدّث خطتك وسعراتك لوحده.</p><button class="btn ghost" data-act="obOpen">تعديل هدفي وبياناتي (الشغل، التمرين، الأكل برة...)</button>');
   h+=coachCards();
   h+=card('<h2>حسابي</h2>'+(S.user?'<p class="sub">'+esc(S.user.email||"حساب جوجل")+'</p>':'<p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس.</p>')
-    +'<div class="row"><button class="btn ghost sm" data-act="exportData">تصدير بياناتي (ملف)</button>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</div>'
+    +'<div class="row"><button class="btn ghost sm" data-act="exportData">تصدير بياناتي (ملف)</button></div>'
     +(S.ui.wipe?'<p class="msg">ده هيمسح كل أكلك وصورك وبياناتك نهائيا. متأكد؟</p><div class="row"><button class="btn danger sm" data-act="wipeOk">اه امسح كل حاجة</button><button class="btn ghost sm" data-act="wipeNo">لأ</button></div>':'<button class="btn ghost sm" data-act="wipe">مسح كل بياناتي</button>'));
   return h;
 }
