@@ -22,7 +22,7 @@ function draw(){
    +'<input class="inp" id="q" placeholder="دوّر بالإيميل أو الاسم" value="'+esc(q)+'">'+(msg?'<p class="msg">'+esc(msg)+'</p>':"")
    +'<div class="row"><button class="btn sm" id="rl">تحديث</button><a class="btn ghost sm" target="_blank" rel="noopener" href="https://console.firebase.google.com/project/'+esc((window.FIREBASE_CONFIG||{}).projectId)+'/authentication/users">حذف الحساب نفسه (Firebase)</a></div>');
   h+='<div class="card scroll"><table class="tbl"><thead><tr><th>الإيميل / الاسم</th><th>النوع</th><th>الكوتش</th><th>الهدف</th><th>سجّل</th><th>آخر دخول</th><th></th></tr></thead><tbody>'+f.map(r=>{
-    const role=r.asCoach?'<span class="tag">كوتش</span><br><small>'+esc(r.asCoach.p)+'</small><span class="code" title="كود الدعوة">'+esc(coachCode(r.asCoach.n,r.asCoach.p,r.asCoach.u))+'</span>':'مستخدم';
+    const role=r.asCoach?'<span class="tag">كوتش</span><br><small>'+esc(r.asCoach.p)+'</small><span class="code" title="كود الدعوة">'+esc(r.asCoach.code||'(بدون كود)')+'</span>':'مستخدم';
     const mc=r.myCoach?esc(r.myCoach.n)+'<br><small>'+esc(r.myCoach.p)+'</small>':"-";
     const del=confirmId===r.id?'<b class="msg">متأكد؟</b> <button class="btn danger sm" data-del="'+esc(r.id)+'">اه امسح</button> <button class="btn ghost sm" data-no="1">لأ</button>':'<button class="btn ghost sm" data-ask="'+esc(r.id)+'">مسح البيانات</button>';
     return '<tr><td>'+esc(r.email||"(بدون إيميل: لسه ما دخلش بعد التحديث)")+'<br><small>'+esc(r.name||"")+(r.onboarded?"":" (ما كمّلش التسجيل)")+'</small></td><td>'+role+'</td><td>'+mc+'</td><td>'+esc(GOALS[r.goal]||"-")+'</td><td>'+fmt(r.created)+'</td><td>'+fmt(r.seen)+'</td><td>'+del+'</td></tr>'}).join("")+'</tbody></table></div>';

@@ -204,3 +204,4 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .stp b{font-size:24px;min-width:0;padding:2px 0}
 .ehd{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ehd .x{width:40px;height:40px;font-size:22px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);cursor:pointer}
+.codebox{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:3px;text-align:center;padding:14px;border-radius:14px;background:var(--surface2);border:1px dashed var(--line);user-select:all;margin:6px 0}

@@ -35,6 +35,16 @@ service cloud.firestore {
         allow read, delete: if isAdmin();
       }
     }
+    // Coach invite codes: 8-10 chars, unique (only the owner may overwrite a code).
+    match /coaches/{code} {
+      allow get: if request.auth != null;
+      allow list: if isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.u == request.auth.uid
+        && code.matches('[A-Z0-9]{8,10}');
+      allow update, delete: if request.auth != null && resource.data.u == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
     match /{document=**} {
       allow read, write: if false;
     }
