@@ -1113,7 +1113,7 @@ async function auGo(){
   if(!a.email.trim()||!a.pw){a.msg="اكتب الإيميل والباسورد.";render();return}
   a.busy=1;a.msg="";render();
   try{if(a.mode==="reg")await S.fb.auth.createUserWithEmailAndPassword(a.email.trim(),a.pw);else await S.fb.auth.signInWithEmailAndPassword(a.email.trim(),a.pw)}
-  catch(e){a.msg=authErr(e&&e.code)}
+  catch(e){if(e&&e.code==='auth/email-already-in-use'){a.mode='login';a.msg='الحساب ده موجود بالفعل. دخّل بالباسورد بتاعك، ولو نسيته دوس "نسيت الباسورد؟".'}else a.msg=authErr(e&&e.code)}
   a.busy=0;if(S.auth==="out")render();
 }
 async function auGoogle(){

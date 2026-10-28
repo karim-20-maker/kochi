@@ -36,7 +36,7 @@ function draw(){
 async function wipe(id){
   try{
     for(const c of ["days","body","photos"]){const sn=await db.collection("users/"+id+"/"+c).get();for(const d of sn.docs)await d.ref.delete()}
-    await db.doc("users/"+id).delete();confirmId=null;msg="اتمسحت بيانات المستخدم. لو عايز تمسح الحساب نفسه استخدم زرار Firebase.";
+    await db.doc("users/"+id).delete();confirmId=null;msg="اتمسحت بيانات المستخدم بس. الإيميل لسه موجود في Firebase: لو عايزه يسجّل من الأول بنفس الإيميل امسح الحساب من زرار Firebase، أو خليه يدخل بنفس الباسورد.";
   }catch(e){msg="فشل المسح: "+(e.code||e.message)}
   await load()}
 function start(){
