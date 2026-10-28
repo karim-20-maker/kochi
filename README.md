@@ -1,1 +1,39 @@
-# kochi
+# كوتشي — Kochi (Personal fitness & nutrition coach)
+
+تطبيق ويب (PWA) بالعربي: حساب السعرات والماكروز والمياه والتمرين **من غير أي AI**.
+الكوتش = (أ) برومبت جاهز لـ ChatGPT المجاني، أو (ب) كوتش حقيقي على واتساب.
+الحسابات والبيانات على Firebase (كل يوزر يشوف بياناته بس).
+
+## 1) إعداد Firebase (مرة واحدة)
+1. https://console.firebase.google.com → Add project.
+2. Build → **Authentication** → Sign-in method → فعّل **Email/Password** و **Google**.
+3. Authentication → Settings → Authorized domains → أضف `karim-20-maker.github.io`.
+4. Build → **Firestore Database** → Create (production mode).
+5. Firestore → Rules → الصق محتوى `firestore.rules` → Publish.
+6. Project settings → Your apps → Web (`</>`) → انسخ `firebaseConfig`.
+7. افتح `firebase-config.js` وحط القيم. (القيم دي مش سر.)
+
+لو `apiKey` فاضي التطبيق بيشتغل في **وضع تجريبي** على الجهاز بس (localStorage).
+
+## 2) الرفع على GitHub
+1. https://github.com/karim-20-maker/kochi → Add file → Upload files.
+2. اسحب كل محتويات المجلد (مش المجلد نفسه) → Commit.
+3. Settings → Pages → Source: Deploy from a branch → `main` / root → Save.
+4. الرابط: https://karim-20-maker.github.io/kochi/
+
+## 3) الكوتش الخاص (واتساب)
+- **الكوتش:** التقدم ← "أنا كوتش" ← اسمه ورقم واتساب ← يطلع رابط دعوة (`?coach=...`) يبعته لمشتركينه.
+- **المشترك:** يفتح الرابط (بيتربط تلقائي بعد التسجيل) أو يلصق الكود في التقدم ← "كوتشي الخاص".
+- في تبويب الكوتش: "ابعت تقرير اليوم" أو سؤال ← بيفتح واتساب (`wa.me`) والرسالة مكتوبة، والمشترك يدوس إرسال.
+- الاختيار بين ChatGPT / واتساب / الاتنين من تبويب الكوتش.
+- الكود فيه اسم ورقم الكوتش بس. مفيش سيرفر وسيط ومفيش بيانات بتتشارك غير اللي المشترك بيبعته بنفسه.
+- لسه مفيش داشبورد للكوتش ولا دفع (مؤجلين).
+
+## 4) على الموبايل
+افتح الرابط في Chrome → ⋮ → Add to Home screen.
+
+## ملاحظات
+- التنبيهات (وجبات/مياه) بوب-أب وقت ما التطبيق مفتوح فقط.
+- الأرقام الغذائية تقريبية ومش بديل لاستشارة طبية. تحت 18 سنة: التطبيق ما بيعملش عجز سعرات.
+- بحث المنتجات من Open Food Facts (مجاني، محتاج نت).
+- لو غيرت ملفات بعد النشر، زوّد `VERSION` في `sw.js` عشان الكاش يتحدث.
