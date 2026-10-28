@@ -513,18 +513,15 @@ function waReportText(){
   return L.join("\n");
 }
 function viewCoach(){
-  const P=S.profile,mc=P.myCoach,mode=mc?(P.coachMode||"both"):"gpt",wa=mc&&mode!=="gpt",gpt=mode!=="wa";
-  let h='<header class="top"><div class="min0"><h1>الكوتش</h1><p class="sub">'+(wa?'كوتشك الخاص: '+esc(mc.n)+'.':'بنجهّز لك البرومبت ببياناتك، وإنت بتبعته لـ ChatGPT بحسابك المجاني.')+'</p></div></header>';
-  if(mc)h+=card('<h2>الكوتش بتاعك</h2><div class="seg">'+[["gpt","ChatGPT"],["wa","واتساب"],["both","الاتنين"]].map(x=>'<button class="chip" aria-pressed="'+(mode===x[0])+'" data-act="coachMode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>');
-  if(wa){
-    h+=card('<h2>ابعت لكوتشك على واتساب</h2><div class="row"><button class="btn" data-act="waSend" data-v="report">ابعت تقرير اليوم</button></div>'
-      +'<label class="lb" for="waIn">أو اسأله</label><textarea class="inp" id="waIn" data-in="chat" placeholder="اكتب سؤالك للكوتش">'+esc(S.ui.draft)+'</textarea><div class="row"><button class="btn" data-act="waSend" data-v="ask">ابعت السؤال</button></div>'
-      +'<p class="hint">هيفتح واتساب والرسالة مكتوبة، وإنت بتدوس إرسال. الكوتش بيشوف اللي بتبعته بس.</p>');
-  }
+  const P=S.profile,mc=P.myCoach,gpt=true;
+  let h='<header class="top"><div class="min0"><h1>الكوتش</h1><p class="sub">'+(mc?'كوتشك الخاص: '+esc(mc.n)+'. أو اسأل ChatGPT.':'بنجهّز لك البرومبت ببياناتك، وإنت بتبعته لـ ChatGPT بحسابك المجاني.')+'</p></div></header>';
+  h+=card('<h2>اسأل الكوتش</h2><label class="lb" for="chatIn">سؤالك</label><textarea class="inp" id="chatIn" data-in="chat" placeholder="مثلا: أنا جعان بالليل، آكل إيه؟">'+esc(S.ui.draft)+'</textarea>'
+    +'<div class="row"><button class="btn" data-act="askGpt">اسأل ChatGPT</button>'+(mc?'<button class="btn" data-act="waSend" data-v="ask">ابعت لكوتشي ('+esc(mc.n)+') على واتساب</button>':'')+'</div>'
+    +(mc?'<div class="row"><button class="btn ghost" data-act="waSend" data-v="report">ابعت تقرير اليوم لكوتشي على واتساب</button></div>':'<p class="hint">عندك كوتش خاص؟ اربطه من التقدم ← "كوتشي الخاص" وهيظهرلك زرار واتساب.</p>')
+    +'<p class="hint">الأزرار بتفتحلك التطبيق مباشرة والرسالة جاهزة، وإنت بتدوس إرسال.</p>');
   if(gpt){
     const btn=(k,t)=>'<div class="row"><button class="btn" data-act="coach" data-v="'+k+'">'+t+'</button></div>';
-    h+=card('<h2>تقييم سريع</h2>'+btn("day","قيّم يومي")+btn("rest","أكمّل اليوم إزاي؟")+btn("week","تقييم الأسبوع")+'<p class="hint">كل ما تسجل أكتر، رد الكوتش بيبقى أدق. بنفتح لك ChatGPT والبرومبت جاهز (أو منسوخ لو كان طويل).</p>');
-    h+=card('<h2>اسأل الكوتش</h2><label class="lb" for="chatIn">سؤالك</label><textarea class="inp" id="chatIn" data-in="chat" placeholder="مثلا: أنا جعان بالليل، آكل إيه؟">'+esc(S.ui.draft)+'</textarea><div class="row"><button class="btn" data-act="sendChat">جهّز السؤال</button></div>');
+    h+=card('<h2>تقييم سريع (ChatGPT)</h2>'+btn("day","قيّم يومي")+btn("rest","أكمّل اليوم إزاي؟")+btn("week","تقييم الأسبوع"));
   }
   return h;
 }
@@ -931,6 +928,7 @@ function act(name,t){
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
     case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
     case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
+    case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;window.open(chatgptUrl(full),"_blank","noopener");copyText(full).then(ok=>toast(ok?"اتنسخ السؤال. لو ChatGPT مظهرهوش الصقه":"افتح ChatGPT والصق السؤال"));break}
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText();window.open(waUrl(mc.p,t),"_blank","noopener");break}
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
@@ -1130,13 +1128,15 @@ async function wipeAll(){
 /* ---------- onboarding wizard ---------- */
 const OB_LIKES=["فراخ","لحمة","سمك","تونة","بيض","جبنة وألبان","بقوليات (فول وعدس وحمص)","خضار","فاكهة","رز ومكرونة","أكل مصري"];
 const OB_STEPS=["أهلا بيك في كوتشي","شغلك ونشاطك","هدفك وأكلك","مواعيدك","جاهز نبدأ"];
-function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC())}}}
+function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC()),role:P.asCoach?"coach":"user",cn:(P.asCoach&&P.asCoach.n)||P.name||"",cp:"",cc:""}}}
 const obChip=(k,v,l,on)=>'<button class="chip" aria-pressed="'+on+'" data-act="obSet" data-k="'+k+'" data-v="'+esc(v)+'">'+l+'</button>';
 function obView(){
   const o=S.ob||(S.ob=obInit()),d=o.d,st=o.step;
   const inp=(k,l,type,extra)=>'<div><label class="lb" for="ob_'+k+'">'+l+'</label><input class="inp" id="ob_'+k+'" data-in="ob" data-k="'+k+'" type="'+type+'" '+(extra||"")+' value="'+esc(d[k])+'"></div>';
   let b="";
-  if(st===0)b='<p class="sub">كام سؤال سريع عشان نظبطلك الخطة على قدك.</p>'+inp("name","اسمك (اختياري)","text",'autocomplete="given-name"')
+  if(st===0)b='<p class="lb">هتستخدم كوتشي كـ:</p><div class="chips">'+obChip("role","user","مستخدم عادي",d.role==="user")+obChip("role","coach","كوتش (عندي مشتركين)",d.role==="coach")+'</div>'
+    +(d.role==="coach"?'<p class="sub">هنعملك رابط دعوة تبعته لمشتركينك، وهيبعتولك تقاريرهم وأسئلتهم على واتساب. كمّل بياناتك الشخصية كمان عشان تستخدم التطبيق لنفسك.</p>'+inp("cn","اسمك ككوتش","text")+inp("cp","رقم واتساب (مثلا 01012345678)","tel",'inputmode="tel"'):inp("cc","كود الكوتش بتاعك (لو عندك، اختياري)","text"))
+    +'<p class="sub">كام سؤال سريع عشان نظبطلك الخطة على قدك.</p>'+inp("name","اسمك (اختياري)","text",'autocomplete="given-name"')
     +'<p class="lb">إنت:</p><div class="chips">'+obChip("sex","m","راجل",d.sex==="m")+obChip("sex","f","ست",d.sex==="f")+'</div>'
     +'<div class="grid2">'+inp("birth","شهر وسنة الميلاد","month")+inp("height","الطول (سم)","number",'inputmode="numeric"')+inp("weight","الوزن (كجم)","number",'inputmode="decimal" step="0.1"')+'</div>';
   else if(st===1)b='<p class="lb">طبيعة شغلك وحركتك في اليوم:</p><div class="chips">'+Object.keys(JOBS).map(k=>obChip("job",k,JOBS[k].t,d.job===k)).join("")+'</div>'
@@ -1165,6 +1165,8 @@ function obValid(){
   if(st===0){
     if(!(Number(d.weight)>=30&&Number(d.weight)<=250)){toast("اكتب وزنك بالكيلو");return false}
     if(!(Number(d.height)>=100&&Number(d.height)<=230)){toast("اكتب طولك بالسنتيمتر");return false}
+    if(d.role==="coach"){if(!(d.cn||"").trim()){toast("اكتب اسمك كوتش");return false}if(!waNum(d.cp)){toast("رقم الواتساب مش صح");return false}}
+    if((d.cc||"").trim()&&!parseCoachCode(d.cc)){toast("كود الكوتش مش صح");return false}
     if(!/^\d{4}-\d{2}$/.test(d.birth||"")){toast("اختار شهر وسنة الميلاد");return false}
     const a=ageFrom(d.birth);if(a<10){toast("راجع سنة الميلاد");return false}if(a>90){toast("راجع سنة الميلاد");return false}
   }
@@ -1174,6 +1176,8 @@ function obValid(){
 function obDone(){
   const d=S.ob.d,P=S.profile,wt=Number(d.weight),changed=wt!==curWeight();
   Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
+  if(d.role==="coach")P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp)};else if(P.asCoach&&d.role==="user")P.asCoach=null;
+  {const o=parseCoachCode(d.cc);if(o){P.myCoach=o;P.coachMode="both"}}
   saveProfile();
   if(changed||!Object.keys(S.body).length){const td=todayStr(),o=S.body[td]||{d:td};o.w=wt;S.body[td]=o;saveBody(td)}
   S.ob=null;S.tab="today";S.date=todayStr();render(false);window.scrollTo(0,0);setTimeout(checkReminders,900);
