@@ -317,7 +317,7 @@ function viewToday(){
       else if(id!=="b"&&res.passed.indexOf(id)>=0)b+='<p class="sub">فات ميعادها؟ لو أكلت سجّلها.</p>';
       if(id!=="b")favsOf(id).forEach((f,i)=>{b+=favCard(f,id,i)});
     }
-    b+='<div class="row">'+(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">ابني وجبتك</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button></div>';
+    b+='<div class="row">'+(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button></div>';
     h+=card(b,"slot");
   });
   h+='<button class="btn ghost" data-act="tab" data-v="coach">اسأل الكوتش عن يومك</button>';
@@ -378,7 +378,7 @@ function remainHtml(res,tg,date){
   const n=[];
   if(res.passed.length)n.push('فاتك تسجّل: '+res.passed.map(slotName).join("، ")+'. لو كلتها سجّلها، والباقي هيتحدّث.');
   if(res.done&&r.k>=0)n.push('خلصت سعراتك تقريبا. اكتفي بمياه وقهوة أو شاي من غير سكر.');
-  if(res.open.length&&!res.done)n.push('تحت كل وجبة ميزانيتها التقريبية، وبتتحدّث لوحدها كل ما تسجّل حاجة. دوس ابني وجبتك واختار اللي هتاكله.');
+  if(res.open.length&&!res.done)n.push('تحت كل وجبة ميزانيتها التقريبية، وبتتحدّث لوحدها كل ما تسجّل حاجة. دوس يلا نطبخ واختار اللي هتاكله.');
   if(res.shake)n.push('غالبا هيفضل ناقص حوالي '+r0(res.pgap)+' جم بروتين بعد وجباتك. شيك البروتين في المشروبات هيكمّله.');
   return card(b+n.map(x=>'<p class="sub">'+esc(x)+'</p>').join(""));
 }
@@ -393,7 +393,7 @@ function viewFood(){
   let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">وجباتك المفضلة وأصنافك الخاصة ونصايح سريعة.</p></div></header>';
   let fv="";
   Object.keys(SL).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{fv+='<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SL[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>'})});
-  h+=card('<h2>وجباتي المفضلة</h2><p class="sub">لما تبني وجبة من "ابني وجبتك" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
+  h+=card('<h2>وجباتي المفضلة</h2><p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
   const cf=(S.profile.cf||[]).map(c=>'<div class="ent"><div class="nm"><b>'+esc(c.n)+'</b><span>'+r0(c.k)+' سعر · '+r0(c.p)+' بروتين · '+r0(c.c)+' كارب · '+r0(c.f)+' دهون (لكل 100 جم)</span></div><button class="x" data-act="cfDel" data-v="'+esc(c.id)+'" aria-label="مسح">×</button></div>').join("");
   const u=S.ui.cf||{},ci=(k,l,ph)=>'<div><label class="lb" for="cf_'+k+'">'+l+'</label><input class="inp" id="cf_'+k+'" data-in="cfi" data-k="'+k+'" '+(k==="n"?'':'type="number" inputmode="decimal" ')+'placeholder="'+(ph||"")+'" value="'+esc(u[k]||"")+'"></div>';
   h+=card('<h2>أصنافي</h2><p class="sub">أضف أي منتج من الباكيدج بقيمه لكل 100 جم، وهيظهر في بحث الأصناف تحت "أصنافي". كمان تقدر تدوّر على منتجات معبأة من تبويب "منتجات" وإنت بتضيف أكل.</p>'+cf
@@ -737,7 +737,7 @@ function drawSheet(){
   const host=$("#sheetHost"),sh=S.sheet;
   if(!sh){host.innerHTML="";document.body.style.overflow="";return}
   document.body.style.overflow="hidden";
-  const tabs=(BUILD[sh.slot]?[["build","ابني وجبتك"]]:[]).concat([["list","القايمة"],["off","منتجات"],["recent","الأخير"],["custom","يدوي"]]);
+  const tabs=(BUILD[sh.slot]?[["build","يلا نطبخ"]]:[]).concat([["list","القايمة"],["off","منتجات"],["recent","الأخير"],["custom","يدوي"]]);
   let body="";
   if(sh.tab==="build")body='<div id="bl"></div>';
   else if(sh.tab==="list")body='<input class="inp" id="q" data-in="q" type="search" placeholder="دوّر: بيض، رز، فراخ..." autocomplete="off" value="'+esc(sh.q)+'" aria-label="بحث"><div class="chips"><button class="chip" aria-pressed="'+(sh.cat===-1)+'" data-act="scat" data-v="-1">الكل</button>'+CATS.map((c,i)=>'<button class="chip" aria-pressed="'+(sh.cat===i)+'" data-act="scat" data-v="'+i+'">'+c+'</button>').join("")+'</div><div id="fedit"></div><div id="flist"></div>';
@@ -770,14 +770,14 @@ const fnum=n=>n===.5?"نص":String(n);
 function bItem(bl){
   const g=bgGet(bl.grp);if(!g||!bl.opt)return null;
   if(bl.opt==="__cv"){const n=Number(bl.amt),nm=(bl.cvn||"").trim();if(!nm||!(n>0))return null;const k=Number(bl.cvk);const kc=(k>=0&&bl.cvk!=="")?k:25,r=kc/25;
-    return{nm,label:nm,q:n+" جم",k:kc*n/100,p:1.5*r*n/100,c:5*r*n/100,f:.2*r*n/100}}
+    return{gid:"ve",oid:"__cv",nm,label:nm,q:n+" جم",k:kc*n/100,p:1.5*r*n/100,c:5*r*n/100,f:.2*r*n/100}}
   const o=g.o.find(x=>x[0]===bl.opt),n=Number(bl.amt);if(!o||!(n>0))return null;
   const f=FOOD[o[0]];let grams,q,nm=o[1],label=o[1];
   if(o[2]){grams=f.srv?n*100:n*o[3];q=fnum(n)+" "+o[2]}
   else{grams=n;q=n+" جم";
     if(g.ck){if(bl.cook){grams=n*g.ck;q+=" مطبوخ";label+=" (مطبوخ)"}else{q+=" نيّ";label+=" (نيّ)"}}}
   const m=macro(o[0],grams);
-  return{nm,label,q,k:m.k,p:m.p,c:m.c,f:m.f};
+  return{nm,label,q,k:m.k,p:m.p,c:m.c,f:m.f,gid:g.id,oid:o[0],raw:grams,cooked:!!(g.ck&&!o[2]&&bl.cook)};
 }
 const bSum=a=>a.reduce((t,x)=>{t.k+=x.k;t.p+=x.p;t.c+=x.c;t.f+=x.f;return t},{k:0,p:0,c:0,f:0});
 function bPrevText(){const it=bItem(S.sheet.bl);return it?r0(it.k)+" سعر · "+r0(it.p)+" بروتين · "+r0(it.c)+" كارب · "+r0(it.f)+" دهون":"اختار الكمية"}
@@ -793,10 +793,22 @@ function bTotHtml(){
 function paintBuild(){
   const sh=S.sheet,el=$("#bl");if(!el||!sh)return;
   const bl=sh.bl;let h="";
+  if(sh.rcp){
+    const rc=sh.rcp,r=rc.list[rc.i],t=bSum(bl.items);
+    h+='<p class="lb">اختار طبخة ('+rc.list.length+' اقتراحات على حسب اللي اخترته):</p><div class="chips">'+rc.list.map((x,i)=>'<button class="chip" aria-pressed="'+(i===rc.i)+'" data-act="rcpSel" data-v="'+i+'">'+esc(x.t)+'</button>').join("")+'</div>';
+    h+='<div class="edit rcp"><div class="ehd"><b>'+esc(r.t)+'</b><span class="tag">'+esc(r.m)+'</span></div><p class="sub">'+esc(r.d)+'</p>'
+      +'<h3>المقادير (لوجبة واحدة)</h3><ul class="rl">'+r.ing.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'
+      +'<h3>الطريقة</h3><ol class="rl">'+r.st.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'
+      +'<p class="num">'+esc(r.dn)+'</p>'
+      +'<p class="hint">السعرات المحسوبة: '+r0(t.k)+' سعر · '+r0(t.p)+' بروتين · '+r0(t.c)+' كارب · '+r0(t.f)+' دهون (من اللي اخترته بس). الزيت والتتبيلة اللي في الوصفة مش محسوبين، لو عايز تحسب الزيت ضيفه من "زيت وصوص".</p>'
+      +'<div class="row"><button class="btn" data-act="rcpLog">طبختها، سجّلها</button><button class="btn ghost sm" data-act="rcpCopy">انسخ الوصفة</button></div></div>'
+      +'<button class="btn ghost sm" data-act="rcpBack">رجوع للمكونات</button>';
+    el.innerHTML=h;return;
+  }
   h+=bl.items.map((x,i)=>'<div class="ent"><div class="nm"><b>'+esc(x.label)+'</b><span>'+esc(x.q)+' · '+r0(x.k)+' سعر · '+r0(x.p)+' بروتين</span></div><button class="x" data-act="bdel" data-v="'+i+'" aria-label="شيل">×</button></div>').join("");
   h+='<div id="btot">'+bTotHtml()+'</div>';
   if(!bl.grp){
-    h+='<p class="lb">'+(bl.items.length?"ضيف مكوّن تاني":"هتاكل إيه؟ اختار مكوّن وأنا أسألك عن الكمية")+'</p><div class="chips">'+BG.map(g=>'<button class="chip" data-act="bgrp" data-v="'+g.id+'">'+g.n+'</button>').join("")+'<button class="chip" data-act="stab" data-v="list">حاجة تانية</button></div>';
+    h+='<p class="lb">'+(bl.items.length?"ضيف مكوّن تاني":"معاك إيه في التلاجة؟ اختار المكونات والكميات وأنا أقترحلك طبخات بالمقادير والتسوية")+'</p><div class="chips">'+BG.map(g=>'<button class="chip" data-act="bgrp" data-v="'+g.id+'">'+g.n+'</button>').join("")+'<button class="chip" data-act="stab" data-v="list">حاجة تانية</button></div>';
   }else{
     const g=bgGet(bl.grp),o=g.o.find(x=>x[0]===bl.opt),cv=bl.opt==="__cv";
     h+='<div class="edit"><div class="ehd"><b>'+g.n+'</b><button class="x" data-act="bback" aria-label="إغلاق">×</button></div>';
@@ -816,6 +828,7 @@ function paintBuild(){
     }
     h+='<button class="btn ghost sm" data-act="bback">رجوع</button></div>';
   }
+  if(bl.items.length&&window.Recipes)h+='<button class="btn cook" data-act="rcpOpen">👨‍🍳 يلا نطبخ: اقتراحات بالمقادير والتسوية</button>';
   if(bl.items.length)h+='<label class="chk"><input type="checkbox" data-in="bfav"'+(bl.fav?" checked":"")+'> احفظها في مفضلتي (تظهر لك جاهزة المرة الجاية)</label><button class="btn" data-act="bLog">سجّل الوجبة</button>';
   el.innerHTML=h;
 }
@@ -959,9 +972,9 @@ function briefHtml(date,slept){
   h+='<div class="plan"><span class="pn">التمرين</span><div class="pi"><span>'+esc(day.tType?(day.tType==="rest"?"راحة":TT[day.tType]):(sug.train?"المقترح: "+TT[sug.type]+"":"المقترح: راحة ("+sug.why+")"))+'</span></div></div>';
   h+='<div class="plan"><span class="pn">الدايت</span><div class="pi"><span>سعراتك النهاردة ('+(trainOn?"يوم تمرين":"يوم راحة")+')</span><span class="num">'+tg.kcal+'</span></div><div class="pi"><span>بروتين</span><span class="num">'+tg.protein+' جم</span></div><div class="pi"><span>كارب</span><span class="num">'+tg.carbs+' جم</span></div><div class="pi"><span>دهون</span><span class="num">'+tg.fat+' جم</span></div></div>';
   let m='<div class="pi"><span>الفطار '+esc(sc.b)+'</span><span></span></div><p class="sub">'+esc(bl)+'</p>';
-  m+='<div class="pi"><span>الغدا '+esc(sc.l)+'</span><span>'+(outs.indexOf("l")>=0?"أكل برة":"ابني وجبتك")+'</span></div>';
-  if(trainOn)m+='<div class="pi"><span>قبل الجيم '+esc(sc.p)+'</span><span>ابني وجبتك</span></div>';
-  m+='<div class="pi"><span>العشا '+esc(sc.d)+'</span><span>'+(outs.indexOf("d")>=0?"أكل برة":"ابني وجبتك")+'</span></div>';
+  m+='<div class="pi"><span>الغدا '+esc(sc.l)+'</span><span>'+(outs.indexOf("l")>=0?"أكل برة":"يلا نطبخ")+'</span></div>';
+  if(trainOn)m+='<div class="pi"><span>قبل الجيم '+esc(sc.p)+'</span><span>يلا نطبخ</span></div>';
+  m+='<div class="pi"><span>العشا '+esc(sc.d)+'</span><span>'+(outs.indexOf("d")>=0?"أكل برة":"يلا نطبخ")+'</span></div>';
   h+='<div class="plan"><span class="pn">الأكل</span>'+m+'</div>';
   h+='<div class="plan"><span class="pn">المياه</span><div class="pi"><span>'+WG()+' كوباية ('+(WG()/4)+' لتر). كوباية كل '+step+' دقيقة تقريبا بين '+esc(sc.wake)+' و'+esc(sc.sleep)+'.</span></div></div>';
   h+='<p class="hint">التنبيهات رجعت تشتغل. هفكّرك بالوجبات والمياه.</p><button class="btn" data-act="startDay">ابدأ يومي</button>';
@@ -1104,6 +1117,12 @@ function act(name,t){
     case"bamt":{S.sheet.bl.amt=String(v);paintBuild();break}
     case"bcook":{S.sheet.bl.cook=v==="1";paintBuild();break}
     case"bback":{const bl=S.sheet.bl;bl.grp=null;bl.opt=null;bl.amt="";bl.cvn="";bl.cvk="";paintBuild();break}
+    case"rcpOpen":{const sh=S.sheet,l=window.Recipes?Recipes.suggest(sh.bl.items):[];if(!l.length){toast("ضيف مكوّن الأول");break}sh.rcp={list:l,i:0};paintBuild();const b=$("#bl");if(b)b.scrollIntoView({block:"start"});break}
+    case"rcpSel":{S.sheet.rcp.i=Number(v);paintBuild();break}
+    case"rcpBack":S.sheet.rcp=null;paintBuild();break;
+    case"rcpCopy":copyText(S.sheet.rcp.list[S.sheet.rcp.i].txt).then(ok=>toast(ok?"اتنسخت الوصفة":"انسخها يدوي"));break;
+    case"rcpLog":{const sh=S.sheet,bl=sh.bl,r=sh.rcp.list[sh.rcp.i],t=bSum(bl.items);
+      addMeal(S.date,sh.slot,{name:(r.t+": "+bl.items.map(x=>x.nm).join(" + ")).slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)});closeSheet();break}
     case"bdel":{S.sheet.bl.items.splice(Number(v),1);paintBuild();break}
     case"bAdd":{const bl=S.sheet.bl,it=bItem(bl);if(!it){toast("اختار الكمية الأول");return}bl.items.push(it);bl.grp=null;bl.opt=null;bl.amt="";bl.cvn="";bl.cvk="";paintBuild();break}
     case"bLog":{const sh=S.sheet,bl=sh.bl;if(!bl.items.length)return;const t=bSum(bl.items);
