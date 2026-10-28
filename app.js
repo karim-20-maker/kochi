@@ -393,8 +393,10 @@ function viewToday(){
     const hacts=(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button>'+(sugH&&!sugOn?'<button class="btn sm ghost" data-act="sugOpen" data-v="'+id+'">💡 اقتراحات</button>':'');
     slotsH.push({id,t:s[1],html:card(b,"slot"),hub:mcardH(SLE[id][0],SLE[id][1],s[1],logged.length?r0(sk)+" سعر اتسجلت":(bd2?"ميزانية "+r0(bd2.k)+" سعر":"—"),hbody,sugOn?"":hacts)});
   });
-  const askB='<button class="btn ghost" data-act="tab" data-v="coach">اسأل الكوتش عن يومك</button>';
-  const nightB=isToday?'<button class="btn" data-act="sleepNow">أنا داخل أنام</button><p class="hint">بيقفل اليوم ويطلعلك تقرير، وبيسكت التنبيهات لحد ما تصحى.</p>':"";
+  const moonSvg='<svg viewBox="0 0 64 64" aria-hidden="true"><path class="mn" d="M44 8a26 26 0 1 0 12 38A22 22 0 0 1 44 8z" fill="#fde68a"/><path d="M26 34q3 3 6 0M38 36q3 3 6 0" stroke="#92400e" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M33 44q3 2.4 6 0" stroke="#92400e" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="23" cy="40" r="3" fill="#f9a8d4" opacity=".7"/></svg>';
+  const dumbSvg='<svg viewBox="0 0 64 64" aria-hidden="true"><g class="db"><rect x="16" y="26" width="32" height="6" rx="3" fill="#475569"/><rect x="8" y="17" width="8" height="24" rx="3" fill="#f97316"/><rect x="48" y="17" width="8" height="24" rx="3" fill="#f97316"/><rect x="3" y="22" width="5" height="14" rx="2" fill="#475569"/><rect x="56" y="22" width="5" height="14" rx="2" fill="#475569"/></g><path class="cord" d="M32 32C22 35 22 39 32 39C42 39 42 43 32 43C22 43 22 47 32 47C42 47 42 51 32 51C22 51 22 55 32 55" stroke="#0f172a" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>';
+  const askB='<button class="cta ask" data-act="tab" data-v="coach"><span class="cta-ic">'+dumbSvg+'</span><span class="cta-t"><b>اسأل الكوتش عن يومك</b><small>ابعتله يومك أو اسأله أي حاجة</small></span></button>';
+  const nightB=isToday?'<button class="cta night" data-act="sleepNow"><span class="cta-ic">'+moonSvg+'<i class="zz">z</i><i class="zz z2">z</i><i class="zz z3">Z</i></span><span class="cta-t"><b>أنا داخل أنام</b><small>بيقفل اليوم ويطلعلك تقرير، وبيسكت التنبيهات لحد ما تصحى</small></span></button>':"";
   if(isWide()){
     if(S.ui.carDate!==date){S.ui.carDate=date;S.ui.carIdx={}}
     const ci=S.ui.carIdx||(S.ui.carIdx={});
