@@ -307,7 +307,7 @@ function viewToday(){
     +(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
     +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"")
     +(day.tType&&day.tType!=="rest"?'<p class="lb">المدة (دقيقة):</p><div class="chips">'+[30,45,60,90,120].map(n=>'<button class="chip" aria-pressed="'+(mins===n)+'" data-act="tmin" data-v="'+n+'">'+n+'</button>').join("")+'</div>'+(burn?'<p class="hint">حرق تقريبي حوالي '+burn+' سعر (تقدير، ومش بنزوده على سعراتك لأن هدفك محسوب لأيام التمرين أصلا).</p>':""):"")
-    +'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>');
+    +(day.tType==="rest"?"":'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>'));
   const plan=planFor(date),actv=activeSlots(date);
   h+='<h2 style="margin-top:4px">الأكل والمشروبات</h2>';
   SLOTS.forEach(s=>{
