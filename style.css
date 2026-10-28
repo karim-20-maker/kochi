@@ -172,3 +172,7 @@ table.t td,table.t th{padding:6px 4px;border-top:1px solid var(--line);text-alig
 .authhead h1{font-family:var(--font-display);font-size:34px;margin:0}
 textarea.inp[readonly]{font-size:13px;line-height:1.5}
 a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
+.tbl th{color:var(--muted);font-weight:700}
+.scroll{overflow-x:auto}

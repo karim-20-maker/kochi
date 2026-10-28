@@ -35,8 +35,8 @@ const GOALS={
 const DEF={name:"",sex:"m",weight:70,height:170,birth:"1995-01",goal:"cut",job:"desk",gymDays:3,split:"bro",sport:"",likes:[],avoid:"",notes:"",out:{},onboarded:false,waterCups:0,fav:{},cf:[],rem:1,coachMode:"gpt",myCoach:null,asCoach:null,
   sch:{wake:"07:00",sleep:"23:30",b:"09:00",l:"14:00",p:"17:30",d:"21:00"}};
 function waNum(s){let d=String(s||"").replace(/[^\d]/g,"");if(d.startsWith("00"))d=d.slice(2);if(d.length===11&&d[0]==="0")d="20"+d.slice(1);return /^\d{8,15}$/.test(d)?d:""}
-function coachCode(n,p){const j=JSON.stringify({n:n,p:p});return "K"+btoa(unescape(encodeURIComponent(j))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
-function parseCoachCode(c){try{c=String(c||"").trim();const m=c.match(/[?&]coach=([^&#\s]+)/);if(m)c=decodeURIComponent(m[1]);if(c[0]!=="K")return null;let b=c.slice(1).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";const o=JSON.parse(decodeURIComponent(escape(atob(b))));const p=waNum(o.p);return p?{n:String(o.n||"الكوتش").slice(0,40),p:p}:null}catch(e){return null}}
+function coachCode(n,p,u){const j=JSON.stringify({n:n,p:p,u:u||""});return "K"+btoa(unescape(encodeURIComponent(j))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function parseCoachCode(c){try{c=String(c||"").trim();const m=c.match(/[?&]coach=([^&#\s]+)/);if(m)c=decodeURIComponent(m[1]);if(c[0]!=="K")return null;let b=c.slice(1).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";const o=JSON.parse(decodeURIComponent(escape(atob(b))));const p=waNum(o.p);return p?{n:String(o.n||"الكوتش").slice(0,40),p:p,u:String(o.u||"").slice(0,64)}:null}catch(e){return null}}
 const waUrl=(p,t)=>"https://wa.me/"+p+"?text="+encodeURIComponent(t);
 function ageFrom(b){const p=(b||"1995-01").split("-").map(Number);const n=new Date();let a=n.getFullYear()-p[0];if(n.getMonth()+1<p[1])a--;return a}
 
@@ -177,9 +177,18 @@ async function flush(key,fn){
   if(Q.again[key]){const f=Q.again[key];Q.again[key]=null;return flush(key,f)}
   delete S.dirty[key];
 }
-function saveDay(d){sched("d"+d,()=>S.base.collection("days").doc(d).set(clone(S.days[d])))}
-function saveBody(d){sched("b"+d,()=>S.base.collection("body").doc(d).set(clone(S.body[d])))}
-function saveProfile(){sched("p",()=>S.base.set(clone(S.profile)))}
+function saveDay(d){sched("d"+d,()=>S.base.collection("days").doc(d).set(clone(S.days[d])));shareSoon()}
+function saveBody(d){sched("b"+d,()=>S.base.collection("body").doc(d).set(clone(S.body[d])));shareSoon()}
+function saveProfile(){sched("p",()=>S.base.set(clone(S.profile)));shareSoon()}
+let shT=null;
+function shareSoon(){clearTimeout(shT);shT=setTimeout(pushShare,1500)}
+function pushShare(){
+  const P=S.profile,mc=P.myCoach;if(!S.user||!S.fb||!mc||!mc.u||!P.share)return;
+  const days=[];for(let i=0;i<7;i++){const d=addDays(todayStr(),-i),x=S.days[d];if(!x)continue;const t=totals(x);days.push({d:d,k:r0(t.k),p:r0(t.p),c:r0(t.c),f:r0(t.f),w:x.water||0,s:x.sleep==null?null:x.sleep,st:x.steps||0,t:x.tType||"",n:(x.meals||[]).length})}
+  const tg=targetsFor(todayStr());
+  S.fb.db.doc("shares/"+S.user.uid).set({coachUid:mc.u,name:P.name||"",email:S.user.email||"",goal:P.goal,tk:tg.kcal,tp:tg.protein,wg:WG(),w:curWeight(),days:days,updated:Date.now()}).catch(()=>{});
+}
+function askCoach(o){if(o.u&&S.user){S.ui.consent=o}else{S.profile.myCoach=o;S.profile.coachMode="both";saveProfile()}}
 function mut(date,fn){const d=getDay(date);fn(d);saveDay(date);render()}
 function mutQuiet(date,fn){const d=getDay(date);fn(d);saveDay(date)}
 
@@ -525,13 +534,47 @@ function viewCoach(){
   }
   return h;
 }
+function consentBanner(){
+  const o=S.ui.consent;if(!o)return "";
+  return card('<h2>الكوتش '+esc(o.n)+' عايز يتابعك</h2><p class="sub">لو وافقت، هيشوف: اسمك وإيميلك وهدفك ووزنك، وإجماليات كل يوم لآخر 7 أيام (سعرات، بروتين، كارب، دهون، مياه، نوم، خطوات، تمرين). مش هيشوف تفاصيل وجباتك ولا صورك. تقدر تفصله في أي وقت من التقدم، وبمجرد الفصل بيفقد الوصول.</p><div class="row"><button class="btn" data-act="consentYes">موافق</button><button class="btn ghost" data-act="consentNo">لأ</button></div>');
+}
+function modeBar(){
+  if(!(S.auth==="in"&&S.profile.asCoach))return "";
+  return '<div class="seg" style="margin:8px 0">'+[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+}
+function startClients(){
+  if(!S.fb||!S.user||S.clientsOn)return;S.clientsOn=1;
+  S.unsubs.push(S.fb.db.collection("shares").where("coachUid","==",S.user.uid).onSnapshot(q=>{S.clients=q.docs.map(d=>Object.assign({id:d.id},d.data()));S.clientsErr=0;softRender()},()=>{S.clientsErr=1;render()}));
+}
+function viewClients(){
+  const ac=S.profile.asCoach;let h='<header class="top"><div class="min0"><h1>عملائي</h1><p class="sub">المشتركين اللي سجّلوا بالكود بتاعك وتحديثاتهم.</p></div>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</header>';
+  if(!S.fb||!S.user)return h+card('<p class="sub">لوحة العملاء محتاجة حساب مسجّل (مش الوضع التجريبي).</p>');
+  if(S.clientsErr)h+=card('<p class="msg">مقدرتش أحمّل العملاء. اتأكد إن الـ rules الجديدة اتنشرت في Firebase.</p>');
+  const today=todayStr(),cl=(S.clients||[]).slice();
+  const td=c=>(c.days||[]).find(x=>x.d===today);
+  cl.sort((a,b)=>(td(a)?1:0)-(td(b)?1:0)||String(a.name||a.email).localeCompare(String(b.name||b.email)));
+  const logged=cl.filter(td).length;
+  h+=card('<h2>النهاردة</h2><p class="sub">'+(cl.length?logged+' من '+cl.length+' سجّلوا النهاردة.':'لسه محدش اتربط بيك.')+'</p>');
+  cl.forEach(c=>{
+    const t=td(c),ds=c.days||[],n=ds.length,avgK=n?r0(ds.reduce((a,x)=>a+x.k,0)/n):0,avgP=n?r0(ds.reduce((a,x)=>a+x.p,0)/n):0,open=S.ui.open&&S.ui.open[c.id];
+    h+=card('<div class="row" style="justify-content:space-between;align-items:center"><h2>'+esc(c.name||c.email||"مشترك")+'</h2><span class="tag" style="background:'+(t?'var(--accent-soft)':'var(--surface2)')+'">'+(t?'سجّل النهاردة':'لسه مسجلش')+'</span></div>'
+      +'<p class="sub">'+esc(c.email||"")+' | '+esc((GOALS[c.goal]||GOALS.cut).t)+' | الوزن '+esc(c.w||"-")+' كجم</p>'
+      +(t?'<div class="grid2"><div>سعرات: <b>'+t.k+'</b> / '+c.tk+'</div><div>بروتين: <b>'+t.p+'</b> / '+c.tp+'</div><div>مياه: <b>'+t.w+'</b> / '+c.wg+'</div><div>نوم: <b>'+(t.s==null?"-":t.s)+'</b> | خطوات '+t.st+'</div><div>تمرين: <b>'+(t.t?(TT[t.t]||t.t):"لسه")+'</b></div></div>':'<p class="hint">مفيش تسجيل لليوم ده لسه.</p>')
+      +'<p class="hint">متوسط آخر '+n+' أيام مسجلة: '+avgK+' سعر | '+avgP+' جم بروتين. آخر تحديث: '+esc(new Date(c.updated||0).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</p>'
+      +'<button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button>'
+      +(open?'<div class="scroll"><table class="tbl"><thead><tr><th>اليوم</th><th>سعرات</th><th>بروتين</th><th>مياه</th><th>نوم</th><th>تمرين</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+esc(x.d.slice(5))+'</td><td>'+x.k+'</td><td>'+x.p+'</td><td>'+x.w+'</td><td>'+(x.s==null?"-":x.s)+'</td><td>'+(x.t?esc(TT[x.t]||x.t):"-")+'</td></tr>').join("")+'</tbody></table></div>':""));
+  });
+  const link=ac.u?location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p,ac.u):"";
+  h+=card('<h2>رابط الدعوة</h2>'+(link?'<textarea class="inp" id="promptTa" readonly rows="3">'+esc(link)+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button></div>':'<p class="sub">افتح التطبيق مرة بحسابك عشان يتجهز الرابط.</p>'));
+  return h;
+}
 function coachCards(){
   const P=S.profile,mc=P.myCoach,ac=P.asCoach,u=S.ui.cs||{};
   let h=card('<h2>كوتشي الخاص</h2>'+(mc
     ?'<p class="sub">مربوط بالكوتش: <b>'+esc(mc.n)+'</b>. تقدر تبعتله تقرير يومك وأسئلتك من تبويب الكوتش.</p><button class="btn ghost sm" data-act="coachUnlink">فصل الكوتش</button>'
     :'<p class="sub">عندك كوتش خاص؟ اكتب الكود أو الصق الرابط اللي بعتهولك.</p><input class="inp" id="clIn" data-in="cl" placeholder="كود الكوتش" aria-label="كود الكوتش" value="'+esc(S.ui.cl||"")+'"><div class="row"><button class="btn sm" data-act="coachLink">اربط</button></div>'));
   h+=card('<h2>أنا كوتش</h2>'+(ac
-    ?'<p class="sub">بيبعتولك مشتركينك على واتساب: <b>'+esc(ac.n)+'</b> ('+esc(ac.p)+'). ابعتلهم الرابط ده:</p><textarea class="inp" id="promptTa" readonly rows="3">'+esc(location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p))+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button><button class="btn ghost sm" data-act="coachOff">إلغاء</button></div><p class="hint">الكود بيحتوي على اسمك ورقمك بس. مفيش بيانات حد بتوصلك غير اللي هو يبعتهالك في الرسالة.</p>'
+    ?'<p class="sub">بيبعتولك مشتركينك على واتساب: <b>'+esc(ac.n)+'</b> ('+esc(ac.p)+'). ابعتلهم الرابط ده:</p><textarea class="inp" id="promptTa" readonly rows="3">'+esc(location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p,ac.u))+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button><button class="btn ghost sm" data-act="coachOff">إلغاء</button></div><p class="hint">الكود بيحتوي على اسمك ورقمك بس. مفيش بيانات حد بتوصلك غير اللي هو يبعتهالك في الرسالة.</p>'
     :'<p class="sub">لو إنت كوتش وعايز مشتركينك يبعتولك تقاريرهم على واتساب، اكتب اسمك ورقمك وهنعملك رابط دعوة.</p>'
      +'<label class="lb" for="csN">اسمك</label><input class="inp" id="csN" data-in="cs" data-k="n" value="'+esc(u.n!=null?u.n:(P.name||""))+'">'
      +'<label class="lb" for="csP">رقم واتساب</label><input class="inp" id="csP" data-in="cs" data-k="p" type="tel" inputmode="tel" placeholder="مثلا 01012345678" value="'+esc(u.p||"")+'"><div class="row"><button class="btn sm" data-act="coachSave">اعمل رابط الدعوة</button></div>'));
@@ -541,7 +584,7 @@ function applyPendingCoach(){
   const c=S.pendCoach;if(!c||S.profile.myCoach)return;
   S.pendCoach=null;try{localStorage.removeItem("kochi-coach")}catch(e){}
   const o=parseCoachCode(c);if(!o)return;
-  S.profile.myCoach=o;S.profile.coachMode="both";saveProfile();toast("اتربطت بالكوتش "+o.n);
+  askCoach(o);
 }
 const chatgptUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https://chatgpt.com/?q="+q:"https://chatgpt.com/"};
 const claudeUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https://claude.ai/new?q="+q:"https://claude.ai/new"};
@@ -922,12 +965,16 @@ function act(name,t){
     case"auGoogle":auGoogle();break;
     case"auReset":auReset();break;
     case"coachMode":S.profile.coachMode=v;saveProfile();render();break;
-    case"coachLink":{const o=parseCoachCode(S.ui.cl);if(!o){toast("الكود مش صح");break}S.profile.myCoach=o;S.profile.coachMode="both";S.ui.cl="";saveProfile();render();toast("اتربطت بالكوتش "+o.n);break}
-    case"coachUnlink":S.profile.myCoach=null;S.profile.coachMode="gpt";saveProfile();render();break;
-    case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p};saveProfile();render();break}
+    case"coachLink":{const o=parseCoachCode(S.ui.cl);if(!o){toast("الكود مش صح");break}S.ui.cl="";askCoach(o);render();break}
+    case"mode":S.mode=v;try{localStorage.setItem("kochi-mode",v)}catch(e){}if(v==="coach")startClients();render(false);window.scrollTo(0,0);break;
+    case"cOpen":S.ui.open=S.ui.open||{};S.ui.open[v]=!S.ui.open[v];render();break;
+    case"consentYes":{const o=S.ui.consent;if(o){S.profile.myCoach=o;S.profile.coachMode="both";S.profile.share=true;S.ui.consent=null;saveProfile();toast("اتربطت بالكوتش "+o.n)}render();break}
+    case"consentNo":S.ui.consent=null;render();break
+    case"coachUnlink":S.profile.myCoach=null;S.profile.coachMode="gpt";S.profile.share=false;if(S.fb&&S.user)S.fb.db.doc("shares/"+S.user.uid).delete().catch(()=>{});saveProfile();render();break;
+    case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p,u:S.user?S.user.uid:""};saveProfile();render();break}
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
-    case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
-    case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
+    case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
+    case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
     case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;window.open(chatgptUrl(full),"_blank","noopener");copyText(full).then(ok=>toast(ok?"اتنسخ السؤال. لو ChatGPT مظهرهوش الصقه":"افتح ChatGPT والصق السؤال"));break}
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText();window.open(waUrl(mc.p,t),"_blank","noopener");break}
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
@@ -1082,7 +1129,7 @@ async function auReset(){
   try{await S.fb.auth.sendPasswordResetEmail(a.email.trim());a.msg="بعتنالك لينك تغيير الباسورد على الإيميل.";}catch(e){a.msg=authErr(e&&e.code)}
   render();
 }
-function stopListeners(){(S.unsubs||[]).forEach(f=>{try{f()}catch(e){}});S.unsubs=[]}
+function stopListeners(){(S.unsubs||[]).forEach(f=>{try{f()}catch(e){}});S.unsubs=[];S.clientsOn=0;S.clients=[]}
 function endUser(){
   stopListeners();S.user=null;S.base=null;S.auth="out";S.au={mode:"login",email:S.au.email||"",pw:"",msg:"",busy:0};S.profile=clone(DEF);S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.ob=null;S.flow=null;S.sheet=null;S.rmOpen=null;S.loading=true;S.tab="today";S.date=todayStr();
   drawSheet();drawFlow();drawRem();render();
@@ -1092,7 +1139,7 @@ function startUser(u){
   S.user=u;S.auth="in";S.loading=true;S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;
   S.base=S.fb.db.doc("users/"+u.uid);
   const ready={p:0,d:0};let first=true;
-  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
+  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.mode==="coach"&&S.profile.asCoach)startClients();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
   const chk=()=>{if(ready.p&&ready.d)done()};
   setTimeout(done,7000);
   S.unsubs.push(S.base.onSnapshot(sn=>{
@@ -1114,6 +1161,7 @@ function startUser(u){
 async function wipeAll(){
   try{
     if(S.base){
+      try{await S.fb.db.doc("shares/"+S.user.uid).delete()}catch(e){}
       for(const sub of ["days","body","photos"]){
         const q=await S.base.collection(sub).get();
         for(let i=0;i<q.docs.length;i+=400){const b=S.fb.db.batch();q.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}
@@ -1176,8 +1224,8 @@ function obValid(){
 function obDone(){
   const d=S.ob.d,P=S.profile,wt=Number(d.weight),changed=wt!==curWeight();
   Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
-  if(d.role==="coach")P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp)};else if(P.asCoach&&d.role==="user")P.asCoach=null;
-  {const o=parseCoachCode(d.cc);if(o){P.myCoach=o;P.coachMode="both"}}
+  if(d.role==="coach")P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp),u:S.user?S.user.uid:""};else if(P.asCoach&&d.role==="user")P.asCoach=null;
+  {const o=parseCoachCode(d.cc);if(o)askCoach(o)}
   saveProfile();
   if(changed||!Object.keys(S.body).length){const td=todayStr(),o=S.body[td]||{d:td};o.w=wt;S.body[td]=o;saveBody(td)}
   S.ob=null;S.tab="today";S.date=todayStr();render(false);window.scrollTo(0,0);setTimeout(checkReminders,900);
@@ -1193,7 +1241,8 @@ function render(keep){
   else if(S.auth==="out"){body=authView();nav=false}
   else if(S.loading){body='<div class="card"><p class="sub">بجهّز بياناتك...</p></div>';nav=false}
   else if(!S.profile.onboarded||S.ob){body=obView();nav=false}
-  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=v();
+  else if(S.auth==="in"&&S.profile.asCoach&&S.mode==="coach"){body=modeBar()+viewClients();nav=false}
+  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();
     if(S.auth==="local"&&S.tab==="today")body='<div class="card"><p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس. لتسجيل الدخول والتزامن، ضيف إعدادات Firebase.</p></div>'+body}
   $("#app").innerHTML='<main class="app">'+body+'</main>'+(nav?navHtml():"");
   S.pending=false;
@@ -1220,6 +1269,7 @@ function mergeDays(q){
   return m;
 }
 function init(){
+  try{S.mode=localStorage.getItem("kochi-mode")||"me"}catch(e){}
   try{const m=location.search.match(/[?&]coach=([^&#]+)/);if(m){S.pendCoach=decodeURIComponent(m[1]);localStorage.setItem("kochi-coach",S.pendCoach)}else S.pendCoach=localStorage.getItem("kochi-coach")}catch(e){}
   const cfg=window.FIREBASE_CONFIG;
   if(cfg&&cfg.apiKey){
