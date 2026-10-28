@@ -4,9 +4,9 @@
   "webDir": "www",
   "backgroundColor": "#F1F4F0",
   "server": {
-    "url": "https://karim-20-maker.github.io/kochi/",
-    "androidScheme": "https",
-    "allowNavigation": ["karim-20-maker.github.io", "*.firebaseapp.com", "*.googleapis.com", "*.gstatic.com"]
+    "androidScheme": "https"
   },
-  "android": { "allowMixedContent": false }
+  "android": {
+    "allowMixedContent": false
+  }
 }

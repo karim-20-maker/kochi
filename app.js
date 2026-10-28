@@ -162,6 +162,7 @@ function activeSlots(date){
 }
 
 /* ---------- persistence ---------- */
+const SITE=/^https?:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)&&location.port===""?"https://karim-20-maker.github.io/kochi/":location.origin+location.pathname;
 const Q={t:{},fl:{},again:{}};
 const lsKey=()=>S.user?"kochi-u-"+S.user.uid:"kochi-v1";
 function lsRead(k){try{return JSON.parse(localStorage.getItem(k||lsKey())||"null")}catch(e){return null}}
@@ -598,7 +599,7 @@ function viewClients(){
       +(unread?'<p class="msg">رسالة جديدة: '+esc(c.lastMsg.text)+'</p>':'')+'<div class="row"><button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button><button class="btn sm" data-act="thOpen" data-v="'+esc(c.id)+'">'+(S.thId===c.id?"إخفاء الرسايل":"رسايل")+(unread?" (جديد)":"")+'</button></div>'+(S.thId===c.id?'<div>'+bubbles(S.thMsgs||[],"coach")+'<textarea class="inp" id="thIn" data-in="thd" placeholder="اكتب رد للعميل">'+esc(S.ui.thDraft||"")+'</textarea><div class="row"><button class="btn sm" data-act="thSend" data-v="'+esc(c.id)+'">ابعت</button></div></div>':"")
       +(open?'<div class="scroll"><table class="tbl"><thead><tr><th>اليوم</th><th>سعرات</th><th>بروتين</th><th>مياه</th><th>نوم</th><th>تمرين</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+esc(x.d.slice(5))+'</td><td>'+x.k+'</td><td>'+x.p+'</td><td>'+x.w+'</td><td>'+(x.s==null?"-":x.s)+'</td><td>'+(x.t?esc(TT[x.t]||x.t):"-")+'</td></tr>').join("")+'</tbody></table></div>':""));
   });
-  const link=ac.u?location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p,ac.u):"";
+  const link=ac.u?SITE+"?coach="+coachCode(ac.n,ac.p,ac.u):"";
   h+=card('<h2>رابط الدعوة</h2>'+(link?'<textarea class="inp" id="promptTa" readonly rows="3">'+esc(link)+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button></div>':'<p class="sub">افتح التطبيق مرة بحسابك عشان يتجهز الرابط.</p>'));
   return h;
 }
@@ -608,7 +609,7 @@ function coachCards(){
     ?'<p class="sub">مربوط بالكوتش: <b>'+esc(mc.n)+'</b>. تقدر تبعتله تقرير يومك وأسئلتك من تبويب الكوتش.</p><button class="btn ghost sm" data-act="coachUnlink">فصل الكوتش</button>'
     :'<p class="sub">عندك كوتش خاص؟ اكتب الكود أو الصق الرابط اللي بعتهولك.</p><input class="inp" id="clIn" data-in="cl" placeholder="كود الكوتش" aria-label="كود الكوتش" value="'+esc(S.ui.cl||"")+'"><div class="row"><button class="btn sm" data-act="coachLink">اربط</button></div>'));
   h+=card('<h2>أنا كوتش</h2>'+(ac
-    ?'<p class="sub">بيبعتولك مشتركينك على واتساب: <b>'+esc(ac.n)+'</b> ('+esc(ac.p)+'). ابعتلهم الرابط ده:</p><textarea class="inp" id="promptTa" readonly rows="3">'+esc(location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p,ac.u))+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button><button class="btn ghost sm" data-act="coachOff">إلغاء</button></div><p class="hint">الكود بيحتوي على اسمك ورقمك بس. مفيش بيانات حد بتوصلك غير اللي هو يبعتهالك في الرسالة.</p>'
+    ?'<p class="sub">بيبعتولك مشتركينك على واتساب: <b>'+esc(ac.n)+'</b> ('+esc(ac.p)+'). ابعتلهم الرابط ده:</p><textarea class="inp" id="promptTa" readonly rows="3">'+esc(SITE+"?coach="+coachCode(ac.n,ac.p,ac.u))+'</textarea><div class="row"><button class="btn sm" data-act="coachCopy">انسخ الرابط</button><button class="btn ghost sm" data-act="coachShare">شارك</button><button class="btn ghost sm" data-act="coachOff">إلغاء</button></div><p class="hint">الكود بيحتوي على اسمك ورقمك بس. مفيش بيانات حد بتوصلك غير اللي هو يبعتهالك في الرسالة.</p>'
     :'<p class="sub">لو إنت كوتش وعايز مشتركينك يبعتولك تقاريرهم على واتساب، اكتب اسمك ورقمك وهنعملك رابط دعوة.</p>'
      +'<label class="lb" for="csN">اسمك</label><input class="inp" id="csN" data-in="cs" data-k="n" value="'+esc(u.n!=null?u.n:(P.name||""))+'">'
      +'<label class="lb" for="csP">رقم واتساب</label><input class="inp" id="csP" data-in="cs" data-k="p" type="tel" inputmode="tel" placeholder="مثلا 01012345678" value="'+esc(u.p||"")+'"><div class="row"><button class="btn sm" data-act="coachSave">اعمل رابط الدعوة</button></div>'));
@@ -1021,8 +1022,8 @@ function act(name,t){
     case"coachUnlink":stopMsgs();S.profile.myCoach=null;S.profile.coachMode="gpt";S.profile.share=false;if(S.fb&&S.user)S.fb.db.doc("shares/"+S.user.uid).delete().catch(()=>{});saveProfile();render();break;
     case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p,u:S.user?S.user.uid:""};saveProfile();startClients();render();break}
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
-    case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
-    case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
+    case"coachCopy":copyText(SITE+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
+    case"coachShare":{const l=SITE+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
     case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;
       copyText(full);window.open(chatgptUrl(full),"_blank","noopener");
       promptModal("سؤالك اتنسخ",full,"اتنسخ سؤالك ومعاه بياناتك. في ChatGPT دوس مطوّلا على خانة الكتابة واختار لصق، وابعت. لو اللصق ماشتغلش دوس \"نسخ بس\" تحت.");break}

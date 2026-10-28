@@ -6,6 +6,10 @@ on:
     branches: [main]
     paths:
       - "android-wrapper/**"
+      - "*.js"
+      - "*.html"
+      - "*.css"
+      - "*.webmanifest"
       - ".github/workflows/android.yml"
       - "icons/**"
 
@@ -31,6 +35,12 @@ jobs:
         working-directory: android-wrapper
         run: |
           npm install
+          rm -rf www && mkdir www
+          cp ../index.html ../app.js ../foods.js ../style.css ../firebase-config.js ../manifest.webmanifest www/
+          cp -r ../icons www/icons
+          npm install --no-save firebase@10.14.1
+          for f in app auth firestore; do cp node_modules/firebase/firebase-$f-compat.js www/; done
+          sed -i 's#https://www.gstatic.com/firebasejs/10.14.1/##g' www/index.html
           npx cap add android
           npx cap sync android
 
