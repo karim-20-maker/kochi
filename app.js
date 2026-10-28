@@ -1242,7 +1242,7 @@ function onInput(t,commit){
 
 /* ---------- account (Firebase) ---------- */
 const AUTH_ERR={"auth/invalid-email":"الإيميل مش مكتوب صح.","auth/user-not-found":"الإيميل أو الباسورد غلط.","auth/wrong-password":"الإيميل أو الباسورد غلط.","auth/invalid-credential":"الإيميل أو الباسورد غلط.","auth/invalid-login-credentials":"الإيميل أو الباسورد غلط.","auth/email-already-in-use":"الإيميل ده متسجل قبل كده. جرّب تسجيل الدخول.","auth/weak-password":"الباسورد ضعيف. اكتب 6 حروف على الأقل.","auth/too-many-requests":"محاولات كتير. استنى شوية وجرّب تاني.","auth/network-request-failed":"مفيش نت. جرّب تاني.","auth/popup-closed-by-user":"","auth/cancelled-popup-request":"","auth/operation-not-allowed":"طريقة الدخول دي مش مفعّلة. كلّم صاحب التطبيق.","auth/unauthorized-domain":"الدومين ده مش مضاف في Firebase. كلّم صاحب التطبيق."};
-const authErr=c=>(c in AUTH_ERR)?AUTH_ERR[c]:"حصلت مشكلة. جرّب تاني.";
+const authErr=c=>(c in AUTH_ERR)?AUTH_ERR[c]:"حصلت مشكلة"+(c?" ("+c+")":"")+". جرّب تاني، ولو اتكررت ابعت الكود اللي بين القوسين لصاحب التطبيق.";
 function authView(){
   const a=S.au,reg=a.mode==="reg";
   return card('<div class="authhead"><h1>كوتشي</h1><p class="sub">كوتش تغذية وتمرين شخصي بالمصري. سجّل أكلك وتمرينك وخد خطتك كل يوم.</p></div>'
@@ -1361,7 +1361,7 @@ function obView(){
   }
   const last=st===OB_STEPS.length-1;
   b+='<div class="row">'+(st>0?'<button class="btn ghost" data-act="obPrev">السابق</button>':'')+(last?'<button class="btn" data-act="obDone">ابدأ</button>':'<button class="btn" data-act="obNext">التالي</button>')+(S.profile.onboarded?'<button class="btn ghost sm" data-act="obCancel">إلغاء</button>':'')+'</div>';
-  return '<header class="top"><div class="min0"><h1>'+OB_STEPS[st]+'</h1><p class="sub">خطوة '+(st+1)+' من '+OB_STEPS.length+'</p></div></header>'+card(b);
+  return '<header class="top"><div class="min0"><h1>'+OB_STEPS[st]+'</h1><p class="sub">خطوة '+(st+1)+' من '+OB_STEPS.length+'</p></div></header>'+(S.user&&S.fb?'<div class="row" style="justify-content:space-between;align-items:center;margin:0 0 8px"><span class="hint">داخل بـ '+esc(S.user.email||"حسابك")+'</span><button class="chip" data-act="signOut">مش حسابي / تسجيل خروج</button></div>':"")+card(b);
 }
 function obValid(){
   const d=S.ob.d,st=S.ob.step;
