@@ -306,16 +306,19 @@ function dayTitle(d){const x=parse(d);return DAYN[x.getDay()]+" "+x.getDate()+" 
 function dayKind(d){const o=(S.profile.out||{})[dow(d)]||[];return (o.length?"أكل برة: "+o.map(slotName).join("، "):"أكل بيت")+" · "+(isTrainDay(d)?"يوم تمرين":"يوم راحة")}
 
 /* ---------- TODAY ---------- */
+const SLE={b:["🍳","#f59e0b"],l:["🍗","#16a34a"],p:["⚡","#f97316"],d:["🍽️","#3b82f6"],s:["🍎","#ec4899"],m:["🥤","#14b8a6"]};
+const mcardH=(emo,col,t,sub,body,acts)=>'<div class="mcard" style="--c:'+col+'"><div class="mhead"><span class="memo" aria-hidden="true">'+emo+'</span><div class="mt"><h3>'+t+'</h3><span class="sub">'+sub+'</span></div></div><div class="mbody">'+body+'</div>'+(acts?'<div class="mact">'+acts+'</div>':'')+'</div>';
 const isWide=()=>{try{return matchMedia("(min-width:1000px)").matches}catch(e){return false}};
 function carousel(id,items,idx){
   const arrow=(v,rtlDir)=>'<button class="cbtn" data-act="carGo" data-c="'+id+'" data-v="'+v+'" aria-label="'+(v==="next"?"اللي بعده":"اللي قبله")+'">'+chev(rtlDir)+'</button>';
   return '<div class="cartabs">'+items.map((x,i)=>'<button class="chip" data-act="carTo" data-c="'+id+'" data-v="'+i+'" aria-pressed="'+(i===idx)+'">'+x.t+'</button>').join("")+'</div>'
-    +'<div class="carw">'+arrow("prev",true)+'<div class="car" data-c="'+id+'">'+items.map(x=>'<div class="car-i">'+x.html+'</div>').join("")+'</div>'+arrow("next",false)+'</div>';
+    +'<div class="carw">'+arrow("prev",true)+'<div class="car" data-c="'+id+'">'+items.map(x=>'<div class="car-i">'+x.html+'</div>').join("")+'</div>'+arrow("next",false)+'</div>'
+    +'<div class="pips" role="tablist">'+items.map((x,i)=>'<button class="pip" role="tab" data-act="carTo" data-c="'+id+'" data-v="'+i+'" aria-label="'+esc(x.t)+'" aria-current="'+(i===idx)+'"></button>').join("")+'</div>';
 }
 function carEl(c){return document.querySelector('.car[data-c="'+c+'"]')}
 function carStep(el){const i=el.children[1]||el.children[0];if(!i)return 1;const g=parseFloat(getComputedStyle(el).columnGap||getComputedStyle(el).gap)||0;return i.offsetWidth+g}
 function carSet(c,idx,smooth){const el=carEl(c);if(!el)return;const n=el.children.length;idx=Math.max(0,Math.min(n-1,idx));(S.ui.carIdx=S.ui.carIdx||{})[c]=idx;const dir=getComputedStyle(el).direction==="rtl"?-1:1;el.scrollTo({left:dir*idx*carStep(el),behavior:smooth?"smooth":"instant"});carTabs(c,idx)}
-function carTabs(c,idx){document.querySelectorAll('.cartabs [data-c="'+c+'"]').forEach((b,i)=>b.setAttribute("aria-pressed",String(i===idx)))}
+function carTabs(c,idx){document.querySelectorAll('.cartabs [data-c="'+c+'"]').forEach((b,i)=>b.setAttribute("aria-pressed",String(i===idx)));document.querySelectorAll('.pips [data-c="'+c+'"]').forEach((b,i)=>b.setAttribute("aria-current",String(i===idx)))}
 function carRestore(){document.querySelectorAll(".car").forEach(el=>{const c=el.dataset.c,idx=(S.ui.carIdx||{})[c]||0;const dir=getComputedStyle(el).direction==="rtl"?-1:1;el.scrollTo({left:dir*idx*carStep(el),behavior:"instant"})})}
 document.addEventListener("scroll",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("car"))return;const c=el.dataset.c,idx=Math.round(Math.abs(el.scrollLeft)/carStep(el));(S.ui.carIdx=S.ui.carIdx||{})[c]=idx;carTabs(c,idx)},true);
 try{matchMedia("(min-width:1000px)").addEventListener("change",()=>render())}catch(e){}
@@ -357,7 +360,9 @@ function viewToday(){
       if(m.parts&&m.parts.length>1)return '<div class="mgrp"><div class="mgh"><b>'+esc(m.title||"وجبة")+'</b><span>'+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح الوجبة كلها">مسح الكل</button></div>'
         +m.parts.map((p,j)=>'<div class="ent"><div class="nm"><b>'+esc(p.nm)+'</b><span>'+esc(p.q||"")+(p.q?" · ":"")+r0(p.k)+' سعر · '+r0(p.p)+' بروتين</span></div><button class="x" data-act="delPart" data-v="'+x.i+':'+j+'" aria-label="شيل '+esc(p.nm)+'">×</button></div>').join("")+'</div>';
       return '<div class="ent"><div class="nm"><b>'+esc(m.name)+'</b><span>'+esc(m.q||"")+(m.q?" · ":"")+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span></div><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح">×</button></div>'}).join("");
-    if(id==="m"){slotsH.push({id,t:s[1],html:drinksCard(day,res,logged,sk,entries)});return}
+    if(id==="m"){const w=day.water||0;
+      const hb=entries+'<p class="sub">مياه: '+w+' من '+WG()+' كوباية'+(w<WG()?' (فاضل '+(WG()-w)+')':' ✓')+'</p>'+(res.shake?'<div class="plan"><span class="tag">مقترح</span><span class="pn">شيك بروتين</span><div class="pm num">120 سعر · 24 بروتين</div><div class="row"><button class="btn sm" data-act="quickDrink" data-v="shake">شربته</button></div></div>':'')+'<div class="chips">'+QD.map(x=>'<button class="chip" data-act="quickDrink" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+      slotsH.push({id,t:s[1],html:drinksCard(day,res,logged,sk,entries),hub:mcardH(SLE.m[0],SLE.m[1],"مشروبات",logged.length?r0(sk)+" سعر اتسجلت":"المياه من خانة المياه",hb,'<button class="btn sm ghost" data-act="openSheet" data-v="m">+ مشروب تاني</button>')});return}
     if(id==="p"&&actv.indexOf("p")<0&&!logged.length)return;
     const opts=plan[id]||[];
     let b='<div class="slot-h"><h3>'+s[1]+'</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
@@ -377,7 +382,16 @@ function viewToday(){
       if(id!=="b")favsOf(id).forEach((f,i)=>{b+=favCard(f,id,i)});
     }
     b+='<div class="row">'+(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button></div>';
-    slotsH.push({id,t:s[1],html:card(b,"slot")});
+    let sugH="";
+    if(!logged.length){
+      if(id==="b"){const fv=favsOf("b");if(fv.length&&opts[0]==="B1")fv.forEach((f,i)=>{sugH+=favCard(f,"b",i)});else opts.forEach(pid=>{sugH+=planCard(PM[pid],PM[pid].it,pmMacro(pid),{pid,f:1,slot:id,tag:"",alt:false})})}
+      else{if(opts.length){const ai=(S.alt[date+id]||0)%opts.length,pid=opts[ai];sugH+=planCard(PM[pid],PM[pid].it,pmMacro(pid),{pid,f:1,slot:id,tag:"",alt:opts.length>1})}favsOf(id).forEach((f,i)=>{sugH+=favCard(f,id,i)})}
+    }
+    const bd2=res.bud[id],sugOn=S.ui.sugSlot===id&&sugH;
+    const hbody=sugOn?'<button class="btn ghost sm" data-act="sugClose">← رجوع</button>'+sugH
+      :(logged.length?entries:'<div class="mempty"><span aria-hidden="true">'+SLE[id][0]+'</span><p>'+(res.passed.indexOf(id)>=0?'فات ميعادها. لو أكلت سجّلها.':'لسه ماسجلتش.')+'</p>'+(bd2?'<p class="sub">ميزانية تقريبية: '+r0(bd2.k)+' سعر و'+r0(bd2.p)+' جم بروتين</p>':'')+'</div>');
+    const hacts=(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button>'+(sugH&&!sugOn?'<button class="btn sm ghost" data-act="sugOpen" data-v="'+id+'">💡 اقتراحات</button>':'');
+    slotsH.push({id,t:s[1],html:card(b,"slot"),hub:mcardH(SLE[id][0],SLE[id][1],s[1],logged.length?r0(sk)+" سعر اتسجلت":(bd2?"ميزانية "+r0(bd2.k)+" سعر":"—"),hbody,sugOn?"":hacts)});
   });
   const askB='<button class="btn ghost" data-act="tab" data-v="coach">اسأل الكوتش عن يومك</button>';
   const nightB=isToday?'<button class="btn" data-act="sleepNow">أنا داخل أنام</button><p class="hint">بيقفل اليوم ويطلعلك تقرير، وبيسكت التنبيهات لحد ما تصحى.</p>':"";
@@ -392,10 +406,10 @@ function viewToday(){
     const tile=(id,ic,t,v,sub)=>'<button class="htile" data-act="hubOpen" data-v="'+id+'" aria-pressed="'+(hub===id)+'"><span class="tl">'+t+'</span><b class="num">'+v+'</b><span class="ts">'+sub+'</span></button>';
     const stp=(t,act,step,val,sub)=>'<div class="htile st"><span class="tl">'+t+'</span><div class="hstp"><button class="dn" data-act="'+act+'" data-v="-'+step+'" aria-label="أقل">−</button><b class="num">'+val+'</b><button class="up" data-act="'+act+'" data-v="'+step+'" aria-label="أكتر">+</button></div><span class="ts">'+sub+'</span></div>';
     let panel;
-    if(hub==="food")panel=carousel("food",slotsH.map(x=>({t:x.t,html:x.html})),ci.food);
-    else panel=carousel("train",[{t:"تمرين ولا راحة",html:card('<h2>اتمرنت النهاردة؟</h2><p class="sub">'+esc(sugText)+'</p>'+trSeg)},
-      {t:"نوع التمرين",html:card('<h2>اتمرنت إيه؟</h2>'+(trTypes||'<p class="hint">اختار "تمرين" الأول.</p>'))},
-      {t:"المدة والتسخين",html:card('<h2>المدة</h2>'+(trMins||'<p class="hint">اختار نوع التمرين الأول.</p>')+trWarm)}],ci.train);
+    if(hub==="food")panel=carousel("food",slotsH.map(x=>({t:x.t,html:x.hub})),ci.food);
+    else panel=carousel("train",[{t:"تمرين ولا راحة",html:mcardH("🏃","#8b5cf6","اتمرنت النهاردة؟",esc(sugText),trSeg,"")},
+      {t:"نوع التمرين",html:mcardH("🏋️","#f97316","اتمرنت إيه؟","",trTypes||'<p class="hint">اختار "تمرين" الأول.</p>',"")},
+      {t:"المدة والتسخين",html:mcardH("⏱️","#0ea5e9","المدة",burn?"حرق تقريبي "+burn+" سعر":"",(trMins||'<p class="hint">اختار نوع التمرين الأول.</p>')+trWarm,"")}],ci.train);
     h+='<div class="hub span"><div class="hubtop">'+sumCard+remainH+'</div>'
       +'<div class="htiles">'+tile("food","","الأكل",eaten+"/"+tot5,r0(tot.k)+" سعر اتاكلت")+tile("train","","التمرين",tmode==="rest"?"راحة":(day.tType?"✓":"–"),esc(trLabel))
       +stp("مياه","water",1,day.water||0,"من "+WG()+" كوباية")+stp("نوم","sleep",.5,day.sleep==null?"–":day.sleep,"ساعات (7 إلى 8)")
@@ -1131,6 +1145,8 @@ function act(name,t){
     case"ttype":(S.ui.carIdx=S.ui.carIdx||{}).train=(getDay(S.date).tType===v?1:2);mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false;d.mins=0}else{d.tType=v;d.trained=v!=="rest";if(v==="rest")d.mins=0}});break;
     case"tmin":mut(S.date,d=>{d.mins=d.mins===Number(v)?0:Number(v)});break;
     case"tmode":(S.ui.carIdx=S.ui.carIdx||{}).train=(v==="rest"?0:1);if(v==="rest"){S.ui.tOpen=null;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null}else{d.tType="rest";d.trained=false;d.mins=0}})}else{S.ui.tOpen=(S.ui.tOpen===S.date&&!(S.date&&getDay(S.date).tType))?null:S.date;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null;d.trained=false}})}render();break;
+    case"sugOpen":S.ui.sugSlot=v;render();break;
+    case"sugClose":S.ui.sugSlot=null;render();break;
     case"hubOpen":S.ui.hub=v;render();break;
     case"carTo":carSet(t.dataset.c,Number(v),true);break;
     case"carGo":{const c=t.dataset.c,el=carEl(c);if(!el)break;const cur=(S.ui.carIdx||{})[c]||0;carSet(c,cur+(v==="next"?1:-1),true);break}
