@@ -405,17 +405,17 @@ function viewToday(){
     if(ci.train==null)ci.train=tmode==="train"?(day.tType&&day.tType!=="rest"?2:1):0;
     const eaten=slotsH.filter(x=>x.id!=="m"&&(day.meals||[]).some(m=>m.slot===x.id)).length,tot5=slotsH.filter(x=>x.id!=="m").length;
     const trLabel=day.tType?(day.tType==="rest"?"راحة":TT[day.tType]+(day.mins?" · "+day.mins+" د":"")):(sug.train?"المقترح: "+TT[sug.type]:"المقترح: راحة");
-    const tile=(id,ic,t,v,sub)=>'<button class="htile" data-act="hubOpen" data-v="'+id+'" aria-pressed="'+(hub===id)+'"><span class="tl">'+t+'</span><b class="num">'+v+'</b><span class="ts">'+sub+'</span></button>';
-    const stp=(t,act,step,val,sub)=>'<div class="htile st"><span class="tl">'+t+'</span><div class="hstp"><button class="dn" data-act="'+act+'" data-v="-'+step+'" aria-label="أقل">−</button><b class="num">'+val+'</b><button class="up" data-act="'+act+'" data-v="'+step+'" aria-label="أكتر">+</button></div><span class="ts">'+sub+'</span></div>';
+    const tile=(id,ic,t,v,sub,col)=>'<button class="htile big" style="--c:'+col+'" data-act="hubOpen" data-v="'+id+'" aria-pressed="'+(hub===id)+'"><span class="bemo" aria-hidden="true">'+ic+'</span><span class="bt"><span class="tl">'+t+'</span><b class="num">'+v+'</b><span class="ts">'+sub+'</span></span><span class="bgo" aria-hidden="true">'+(hub===id?"▾":"‹")+'</span></button>';
+    const stp=(t,act,step,val,sub)=>'<div class="htile st sm"><span class="tl">'+t+'</span><div class="hstp"><button class="dn" data-act="'+act+'" data-v="-'+step+'" aria-label="أقل">−</button><b class="num">'+val+'</b><button class="up" data-act="'+act+'" data-v="'+step+'" aria-label="أكتر">+</button></div><span class="ts">'+sub+'</span></div>';
     let panel;
     if(hub==="food")panel=carousel("food",slotsH.map(x=>({t:x.t,html:x.hub})),ci.food);
     else panel=carousel("train",[{t:"تمرين ولا راحة",html:mcardH("🏃","#8b5cf6","اتمرنت النهاردة؟",esc(sugText),trSeg,"")},
       {t:"نوع التمرين",html:mcardH("🏋️","#f97316","اتمرنت إيه؟","",trTypes||'<p class="hint">اختار "تمرين" الأول.</p>',"")},
       {t:"المدة والتسخين",html:mcardH("⏱️","#0ea5e9","المدة",burn?"حرق تقريبي "+burn+" سعر":"",(trMins||'<p class="hint">اختار نوع التمرين الأول.</p>')+trWarm,"")}],ci.train);
     h+='<div class="hub span"><div class="hubtop">'+sumCard+remainH+'</div>'
-      +'<div class="htiles">'+tile("food","","الأكل",eaten+"/"+tot5,r0(tot.k)+" سعر اتاكلت")+tile("train","","التمرين",tmode==="rest"?"راحة":(day.tType?"✓":"–"),esc(trLabel))
+      +'<div class="htiles">'+tile("food","🍽️","الأكل",eaten+"/"+tot5,r0(tot.k)+" سعر اتاكلت","#16a34a")+tile("train","🏋️","التمرين",tmode==="rest"?"راحة":(day.tType?"✓":"–"),esc(trLabel),"#8b5cf6")
       +stp("مياه","water",1,day.water||0,"من "+WG()+" كوباية")+stp("نوم","sleep",.5,day.sleep==null?"–":day.sleep,"ساعات (7 إلى 8)")
-      +'<div class="htile st"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>'
+      +'<div class="htile st sm"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>'
       +'<div class="hubpanel">'+panel+'</div><div class="hubfoot">'+askB+nightB+'</div></div>';
     return h;
   }
