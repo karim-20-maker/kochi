@@ -1091,7 +1091,7 @@ function drawFlow(){
   else if(f.k==="brief")b=briefHtml(f.date,f.slept);
   else if(f.k==="prompt")b=promptHtml(f);
   else{const sl=S.profile.sl||{};b='<h2 id="flT">صحيت؟</h2><p class="sub">'+(sl.at?'دخلت تنام الساعة '+esc(hhmm(new Date(sl.at)))+'. ':'')+'لو صحيت هعرض لك خطة اليوم وأرجّع التنبيهات.</p><div class="row"><button class="btn" data-act="wakeYes">اه صحيت</button><button class="btn ghost" data-act="wakeNo">لا، لسه نايم</button></div>'}
-  h.innerHTML='<div class="ov mid"><div class="viewer" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
+  h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
   const v=h.querySelector(".viewer");if(v)v.scrollTop=0;
 }
 function checkWake(){
@@ -1130,7 +1130,7 @@ function drawRem(){
   r.due.forEach(s=>{b+='<div class="plan"><span class="pn">معاد '+slotName(s)+' ('+esc(sc[s])+') ولسه مسجلتش حاجة</span><div class="row"><button class="btn sm" data-act="remLog" data-v="'+s+'">سجّل '+slotName(s)+'</button><button class="btn sm ghost" data-act="remLater" data-v="'+s+'">بعد 15 دقيقة</button><button class="btn sm ghost" data-act="remSkip" data-v="'+s+'">مش هاكلها</button></div></div>'});
   if(r.water)b+='<div class="plan"><span class="pn">المياه: شربت '+r.water.have+' كوباية بس، والمفروض توصل حوالي '+r.water.exp+' دلوقتي. اشرب كوباية.</span><div class="row"><button class="btn sm" data-act="remWater" data-v="1">شربت كوباية</button><button class="btn sm" data-act="remWater" data-v="2">كوبايتين</button></div></div>';
   b+='<button class="btn ghost" data-act="remClose">إغلاق</button>';
-  h.innerHTML='<div class="ov mid"><div class="viewer" role="alertdialog" aria-modal="true" aria-labelledby="remT">'+b+'</div></div>';
+  h.innerHTML='<div class="ov mid" data-act="remClose"><div class="viewer" role="alertdialog" aria-modal="true" aria-labelledby="remT">'+b+'</div></div>';
 }
 function remDone(s){if(S.rmOpen){S.rmOpen.due=S.rmOpen.due.filter(x=>x!==s);if(!S.rmOpen.due.length&&!S.rmOpen.water)S.rmOpen=null}drawRem()}
 
@@ -1497,10 +1497,11 @@ function render(keep){
 }
 function softRender(){if(inField()){S.pending=true;return}render()}
 
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if(S.rmOpen){act("remClose",document.body);return}if(S.flow&&S.flow.k!=="wake"){act("flowClose",document.body);return}if(S.sheet)closeSheet()});
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const n=t.dataset.act;
-  if((n==="closeSheet"||n==="closeViewer")&&e.target!==t)return;
+  if((n==="closeSheet"||n==="closeViewer"||(n==="flowClose"&&t.classList.contains("ov"))||(n==="remClose"&&t.classList.contains("ov")))&&e.target!==t)return;
   act(n,t);
 });
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.in==="au"){e.preventDefault();auGo()}});
