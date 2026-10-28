@@ -163,23 +163,29 @@ function activeSlots(date){
 
 /* ---------- persistence ---------- */
 const Q={t:{},fl:{},again:{}};
-function lsLoad(){try{const j=JSON.parse(localStorage.getItem("kochi-v1")||"null");if(j){S.profile=Object.assign({},DEF,j.profile||{});S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});S.days=j.days||{};S.body=j.body||{}}}catch(e){}}
-function lsSave(){try{localStorage.setItem("kochi-v1",JSON.stringify({profile:S.profile,days:S.days,body:S.body}))}catch(e){}}
-function sched(key,fn){
-  if(!S.base){clearTimeout(Q.t.local);Q.t.local=setTimeout(lsSave,300);return}
-  S.dirty[key]=1;clearTimeout(Q.t[key]);Q.t[key]=setTimeout(()=>flush(key,fn),500);
+const lsKey=()=>S.user?"kochi-u-"+S.user.uid:"kochi-v1";
+function lsRead(k){try{return JSON.parse(localStorage.getItem(k||lsKey())||"null")}catch(e){return null}}
+function lsApply(j){S.profile=Object.assign({},DEF,j.profile||{});S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});S.days=j.days||{};S.body=j.body||{}}
+function lsLoad(){const j=lsRead();if(j)lsApply(j)}
+window.addEventListener("pagehide",()=>{if(S.auth!=="wait"&&!S.loading)lsSave()});
+function lsSave(){try{localStorage.setItem(lsKey(),JSON.stringify({profile:S.profile,days:S.days,body:S.body}))}catch(e){}}
+function sched(){clearTimeout(Q.t.local);Q.t.local=setTimeout(lsSave,300)}
+const CLOUD_KEYS=["asCoach","myCoach","share","coachMode"];
+function pushCloud(){
+  if(!S.fb||!S.user)return;const P=S.profile;
+  const d={email:S.user.email||"",name:P.name||"",goal:P.goal||"",created:P.created||Date.now(),seen:P.seen||Date.now(),asCoach:P.asCoach||null,myCoach:P.myCoach||null,share:!!P.share,coachMode:P.coachMode||"gpt"};
+  S.fb.db.doc("users/"+S.user.uid).set(d).catch(()=>{});
 }
-async function flush(key,fn){
-  if(Q.fl[key]){Q.again[key]=fn;return}
-  Q.fl[key]=1;
-  try{await fn()}catch(e){toast("مش قادر أحفظ دلوقتي، جرّب تاني")}
-  Q.fl[key]=0;
-  if(Q.again[key]){const f=Q.again[key];Q.again[key]=null;return flush(key,f)}
-  delete S.dirty[key];
-}
-function saveDay(d){sched("d"+d,()=>S.base.collection("days").doc(d).set(clone(S.days[d])));shareSoon()}
-function saveBody(d){sched("b"+d,()=>S.base.collection("body").doc(d).set(clone(S.body[d])));shareSoon()}
-function saveProfile(){sched("p",()=>S.base.set(clone(S.profile)));shareSoon()}
+let cloudT=null;const cloudSoon=()=>{clearTimeout(cloudT);cloudT=setTimeout(pushCloud,1200)};
+function saveDay(d){sched();shareSoon()}
+function saveBody(d){sched();shareSoon()}
+function saveProfile(){sched();cloudSoon();shareSoon()}
+/* photos live only on the device (IndexedDB) */
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("kochi-photos-"+(S.user?S.user.uid:"local"),1);r.onupgradeneeded=()=>r.result.createObjectStore("p",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function idbAll(){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction("p").objectStore("p").getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}
+async function idbPut(rec){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction("p","readwrite");t.objectStore("p").put(rec);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function idbDel(id){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction("p","readwrite");t.objectStore("p").delete(id);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function idbClear(){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction("p","readwrite");t.objectStore("p").clear();t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
 let shT=null;
 function shareSoon(){clearTimeout(shT);shT=setTimeout(pushShare,1500)}
 function pushShare(){
@@ -241,9 +247,8 @@ function viewToday(){
   h+=card('<div class="sumrow">'+ring(tot.k,tg.kcal)+'<div class="macros">'+mrow("بروتين",tot.p,tg.protein,"--protein")+mrow("كارب",tot.c,tg.carbs,"--carb")+mrow("دهون",tot.f,tg.fat,"--fat")+'</div></div>'
     +'<p class="hint">هدف اليوم '+tg.kcal+' سعر ('+(isTrainDay(date)?"يوم تمرين":"يوم راحة")+'). الأرقام تقريبية، المهم الاستمرار.</p>');
   h+=remainHtml(res,tg,date);
-  h+=voiceCard();
-  h+='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button data-act="water" data-v="-1" aria-label="أقل">−</button><b>'+(day.water||0)+'</b><button data-act="water" data-v="1" aria-label="أكتر">+</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
-    +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button data-act="sleep" data-v="-0.5" aria-label="أقل">−</button><b>'+(day.sleep==null?"–":day.sleep)+'</b><button data-act="sleep" data-v="0.5" aria-label="أكتر">+</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
+  h+='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button class="up" data-act="water" data-v="1" aria-label="أكتر">+</button><b>'+(day.water||0)+'</b><button class="dn" data-act="water" data-v="-1" aria-label="أقل">−</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
+    +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button class="up" data-act="sleep" data-v="0.5" aria-label="أكتر">+</button><b>'+(day.sleep==null?"–":day.sleep)+'</b><button class="dn" data-act="sleep" data-v="-0.5" aria-label="أقل">−</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
     +'<div class="tile"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>';
   const types=["back_chest","arms_shoulders","legs","abs","rest"];
   const sugText=day.tType?(day.tType==="rest"?"سجّلت النهاردة راحة.":"سجّلت: "+TT[day.tType]+" ✓"):(sug.train?"المقترح النهاردة: "+TT[sug.type]:"المقترح النهاردة: راحة ("+sug.why+")");
@@ -334,7 +339,7 @@ function remainHtml(res,tg,date){
   if(r.k>=0)b+='<div class="kpis k4"><div class="kpi"><b class="num">'+r0(r.k)+'</b><span>سعر</span></div><div class="kpi"><b class="num">'+r0(Math.max(0,r.p))+'</b><span>بروتين جم</span></div><div class="kpi"><b class="num">'+r0(Math.max(0,r.c))+'</b><span>كارب جم</span></div><div class="kpi"><b class="num">'+r0(Math.max(0,r.f))+'</b><span>دهون جم</span></div></div>';
   else b+='<p><b>عدّيت الهدف بـ '+r0(-r.k)+' سعر.</b> خفّف اللي جاي واكتفي بمياه وقهوة من غير سكر.</p>';
   const n=[];
-  if(res.passed.length)n.push('فاتك تسجّل: '+res.passed.map(slotName).join("، ")+'. لو كلتها قول يومك أو سجّلها، والباقي هيتحدّث.');
+  if(res.passed.length)n.push('فاتك تسجّل: '+res.passed.map(slotName).join("، ")+'. لو كلتها سجّلها، والباقي هيتحدّث.');
   if(res.done&&r.k>=0)n.push('خلصت سعراتك تقريبا. اكتفي بمياه وقهوة أو شاي من غير سكر.');
   if(res.open.length&&!res.done)n.push('تحت كل وجبة ميزانيتها التقريبية، وبتتحدّث لوحدها كل ما تسجّل حاجة. دوس ابني وجبتك واختار اللي هتاكله.');
   if(res.shake)n.push('غالبا هيفضل ناقص حوالي '+r0(res.pgap)+' جم بروتين بعد وجباتك. شيك البروتين في المشروبات هيكمّله.');
@@ -454,8 +459,8 @@ function viewProgress(){
   h+=card('<h2>السعرات آخر 7 أيام</h2>'+kcalChart()+'<p class="hint">الخط الغامق هو هدف كل يوم. العمود البرتقالي معناه زيادة أكتر من 8%.</p>');
   // photos
   let ph='<h2>صور التقدم</h2><p class="sub">كل أسبوعين: نفس الوقت (الصبح)، نفس الإضاءة والمسافة، من قدام وجنب وورا. الصور خاصة بيك إنت بس.</p>';
-  if(!S.base)ph+='<p class="hint">تخزين الصور بيشتغل بس لما تسجّل دخول بحساب.</p>';
-  else{
+  {
+    ph+='<p class="hint">الصور بتتخزن على جهازك بس، ومش بتترفع على النت.</p>';
     ph+='<div class="chips">'+Object.keys(PLAB).map(k=>'<button class="chip" aria-pressed="'+(S.ui.plabel===k)+'" data-act="plabel" data-v="'+k+'">'+PLAB[k]+'</button>').join("")+'</div>'
       +'<button class="btn" data-act="pickPhoto">إضافة صورة ('+PLAB[S.ui.plabel]+')</button><input id="photoIn" data-in="photo" type="file" accept="image/*" hidden>';
     if(S.photos.length){
@@ -670,18 +675,18 @@ async function toJpeg(file){
   return out;
 }
 async function handlePhoto(file){
-  if(!file)return;if(!S.base){toast("تخزين الصور مش متاح");return}
+  if(!file)return;
   try{
     toast("بجهّز الصورة...");
-    const img=await toJpeg(file),rec={d:todayStr(),label:S.ui.plabel,img};
-    const ref=await S.base.collection("photos").add(rec);
-    S.photos.push(Object.assign({id:ref.id},rec));S.photos.sort((a,b)=>a.d<b.d?1:-1);
-    toast("الصورة اتحفظت");render();
-  }catch(e){toast(e&&e.code==="quota_exceeded"?"المساحة امتلت، امسح صور قديمة":"مقدرتش أحفظ الصورة، جرّب صورة تانية")}
+    const img=await toJpeg(file),rec={id:uid(),d:todayStr(),label:S.ui.plabel,img};
+    await idbPut(rec);
+    S.photos.push(rec);S.photos.sort((a,b)=>a.d<b.d?1:-1);
+    toast("الصورة اتحفظت على جهازك");render();
+  }catch(e){toast("مقدرتش أحفظ الصورة، جرّب صورة تانية")}
 }
 async function loadPhotos(){
-  if(!S.base||S.photosLoaded)return;S.photosLoaded=true;
-  try{const q=await S.base.collection("photos").orderBy("d","desc").limit(60).get();S.photos=q.docs.map(x=>Object.assign({id:x.id},x.data()));if(S.tab==="prog")render()}
+  if(S.photosLoaded)return;S.photosLoaded=true;
+  try{S.photos=(await idbAll()).sort((a,b)=>a.d<b.d?1:-1);if(S.tab==="prog")render()}
   catch(e){S.photosLoaded=false}
 }
 function drawViewer(){
@@ -729,6 +734,8 @@ const bgGet=id=>BG.find(g=>g.id===id);
 const fnum=n=>n===.5?"نص":String(n);
 function bItem(bl){
   const g=bgGet(bl.grp);if(!g||!bl.opt)return null;
+  if(bl.opt==="__cv"){const n=Number(bl.amt),nm=(bl.cvn||"").trim();if(!nm||!(n>0))return null;const k=Number(bl.cvk);const kc=(k>=0&&bl.cvk!=="")?k:25,r=kc/25;
+    return{nm,label:nm,q:n+" جم",k:kc*n/100,p:1.5*r*n/100,c:5*r*n/100,f:.2*r*n/100}}
   const o=g.o.find(x=>x[0]===bl.opt),n=Number(bl.amt);if(!o||!(n>0))return null;
   const f=FOOD[o[0]];let grams,q,nm=o[1],label=o[1];
   if(o[2]){grams=f.srv?n*100:n*o[3];q=fnum(n)+" "+o[2]}
@@ -756,10 +763,16 @@ function paintBuild(){
   if(!bl.grp){
     h+='<p class="lb">'+(bl.items.length?"ضيف مكوّن تاني":"هتاكل إيه؟ اختار مكوّن وأنا أسألك عن الكمية")+'</p><div class="chips">'+BG.map(g=>'<button class="chip" data-act="bgrp" data-v="'+g.id+'">'+g.n+'</button>').join("")+'<button class="chip" data-act="stab" data-v="list">حاجة تانية</button></div>';
   }else{
-    const g=bgGet(bl.grp),o=g.o.find(x=>x[0]===bl.opt);
-    h+='<div class="edit"><b>'+g.n+'</b>';
-    if(g.o.length>1)h+='<p class="lb">'+(g.id==="fi"||g.id==="me"?"نوعه إيه؟":g.id==="ve"?"نوع الخضار؟":g.id==="fru"?"نوع الفاكهة؟":"اختار النوع")+'</p><div class="chips">'+g.o.map(x=>'<button class="chip" aria-pressed="'+(bl.opt===x[0])+'" data-act="bopt" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
-    if(o){
+    const g=bgGet(bl.grp),o=g.o.find(x=>x[0]===bl.opt),cv=bl.opt==="__cv";
+    h+='<div class="edit"><div class="ehd"><b>'+g.n+'</b><button class="x" data-act="bback" aria-label="إغلاق">×</button></div>';
+    if(g.o.length>1)h+='<p class="lb">'+(g.id==="fi"||g.id==="me"?"نوعه إيه؟":g.id==="ve"?"نوع الخضار؟":g.id==="fru"?"نوع الفاكهة؟":"اختار النوع")+'</p><div class="chips">'+g.o.map(x=>'<button class="chip" aria-pressed="'+(bl.opt===x[0])+'" data-act="bopt" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+(g.id==="ve"?'<button class="chip" aria-pressed="'+cv+'" data-act="bopt" data-v="__cv">+ خضار تاني</button>':"")+'</div>';
+    if(cv){
+      h+='<label class="lb" for="bcvn">اسم الخضار</label><input class="inp" id="bcvn" data-in="bcvn" placeholder="مثلا: بصل" value="'+esc(bl.cvn||"")+'">'
+       +'<label class="lb" for="bamt">كام جرام؟</label><div class="chips">'+g.g.map(n=>'<button class="chip" aria-pressed="'+(Number(bl.amt)===n)+'" data-act="bamt" data-v="'+n+'">'+n+' جم</button>').join("")+'</div>'
+       +'<input class="inp" id="bamt" data-in="bamt" type="number" inputmode="decimal" min="0" step="5" placeholder="أو اكتب رقم" value="'+esc(bl.amt)+'">'
+       +'<label class="lb" for="bcvk">سعرات كل 100 جم (اختياري، الافتراضي 25)</label><input class="inp" id="bcvk" data-in="bcvk" type="number" inputmode="decimal" min="0" placeholder="25" value="'+esc(bl.cvk||"")+'">'
+       +'<p class="num" id="bmac">'+bPrevText()+'</p><button class="btn" data-act="bAdd">ضيفه للوجبة</button>';
+    }else if(o){
       const unit=!!o[2],chips=o[4]||(unit?[.5,1,2,3]:g.g);
       h+='<label class="lb" for="bamt">'+(unit?"كام "+o[2]+"؟":"كام جرام "+(g.o.length>1?o[1]:g.n)+"؟")+'</label><div class="chips">'+chips.map(n=>'<button class="chip" aria-pressed="'+(Number(bl.amt)===n)+'" data-act="bamt" data-v="'+n+'">'+(unit?fnum(n):n+" جم")+'</button>').join("")+'</div>'
        +'<input class="inp" id="bamt" data-in="bamt" type="number" inputmode="decimal" min="0" step="'+(unit?.5:5)+'" placeholder="أو اكتب رقم" value="'+esc(bl.amt)+'">';
@@ -804,7 +817,7 @@ function paintEdit(){
   const sh=S.sheet,el=$("#fedit");if(!el||!sh)return;
   if(!sh.sel){el.innerHTML="";return}
   const f=FOOD[sh.sel];
-  el.innerHTML='<div class="edit"><b>'+esc(f.n)+'</b><div><label class="lb" for="gIn">'+(f.srv?"عدد الحصص":"الكمية بالجرام")+'</label><input class="inp" id="gIn" data-in="gv" type="number" inputmode="decimal" min="0" step="'+(f.srv?.5:5)+'" value="'+sh.v+'"></div>'
+  el.innerHTML='<div class="edit"><div class="ehd"><b>'+esc(f.n)+'</b><button class="x" data-act="fclose" aria-label="إغلاق">×</button></div><div><label class="lb" for="gIn">'+(f.srv?"عدد الحصص":"الكمية بالجرام")+'</label><input class="inp" id="gIn" data-in="gv" type="number" inputmode="decimal" min="0" step="'+(f.srv?.5:5)+'" value="'+sh.v+'"></div>'
    +(f.off?'<button class="btn ghost sm" data-act="saveCf">احفظ في أصنافي</button>':"")+(f.srv?"":'<div class="chips">'+f.u.map(u=>'<button class="chip" data-act="addUnit" data-v="'+u[1]+'">+ '+u[0]+' ('+u[1]+' جم)</button>').join("")+'</div>')
    +'<p class="num" id="emac">'+emacHtml()+'</p><button class="btn" data-act="sheetAdd">أضف</button></div>';
 }
@@ -1039,6 +1052,7 @@ function act(name,t){
     case"delMeal":mut(S.date,d=>{d.meals.splice(Number(v),1)});break;
     case"openSheet":openSheet(v,t.dataset.t);break;
     case"closeSheet":closeSheet();break;
+    case"fclose":S.sheet.sel=null;paintEdit();break;
     case"stab":S.sheet.tab=v;drawSheet();break;
     case"scat":S.sheet.cat=Number(v);drawSheet();break;
     case"selFood":{const f=FOOD[v];S.sheet.sel=v;S.sheet.v=f.srv?1:(f.u[0]?f.u[0][1]:100);paintEdit();const e=$("#fedit");if(e)e.scrollIntoView({block:"nearest"});break}
@@ -1047,12 +1061,12 @@ function act(name,t){
       const g=f.srv?sh.v*100:Number(sh.v),m=macro(sh.sel,g);
       addMeal(S.date,sh.slot,{name:f.n,q:qtyText(sh.sel,g),k:r0(m.k),p:r1(m.p),c:r1(m.c),f:r1(m.f)});closeSheet();break}
     case"bgrp":{const bl=S.sheet.bl,g=bgGet(v);bl.grp=v;bl.opt=g.o.length===1?g.o[0][0]:null;bl.amt="";paintBuild();break}
-    case"bopt":{const bl=S.sheet.bl;bl.opt=v;bl.amt="";paintBuild();break}
+    case"bopt":{const bl=S.sheet.bl;bl.opt=v;bl.amt="";if(v==="__cv"){bl.cvn="";bl.cvk=""}paintBuild();break}
     case"bamt":{S.sheet.bl.amt=String(v);paintBuild();break}
     case"bcook":{S.sheet.bl.cook=v==="1";paintBuild();break}
-    case"bback":{const bl=S.sheet.bl;bl.grp=null;bl.opt=null;bl.amt="";paintBuild();break}
+    case"bback":{const bl=S.sheet.bl;bl.grp=null;bl.opt=null;bl.amt="";bl.cvn="";bl.cvk="";paintBuild();break}
     case"bdel":{S.sheet.bl.items.splice(Number(v),1);paintBuild();break}
-    case"bAdd":{const bl=S.sheet.bl,it=bItem(bl);if(!it){toast("اختار الكمية الأول");return}bl.items.push(it);bl.grp=null;bl.opt=null;bl.amt="";paintBuild();break}
+    case"bAdd":{const bl=S.sheet.bl,it=bItem(bl);if(!it){toast("اختار الكمية الأول");return}bl.items.push(it);bl.grp=null;bl.opt=null;bl.amt="";bl.cvn="";bl.cvk="";paintBuild();break}
     case"bLog":{const sh=S.sheet,bl=sh.bl;if(!bl.items.length)return;const t=bSum(bl.items);
       const mm={name:bl.items.map(x=>x.nm).join(" + ").slice(0,80),q:bl.items.map(x=>x.q).join(" + ").slice(0,120),k:r0(t.k),p:r1(t.p),c:r1(t.c),f:r1(t.f)};
       if(bl.fav){S.profile.fav=S.profile.fav||{};const a=(S.profile.fav[sh.slot]=S.profile.fav[sh.slot]||[]);a.push({id:uid(),n:mm.name,q:mm.q,k:mm.k,p:mm.p,c:mm.c,f:mm.f});if(a.length>12)a.shift();saveProfile()}
@@ -1069,7 +1083,7 @@ function act(name,t){
     case"closeViewer":S.viewer=null;drawViewer();break;
     case"delPhoto":{const vw=S.viewer;if(!vw)return;if(!vw.confirm){vw.confirm=true;drawViewer();return}
       const id=vw.id;S.viewer=null;drawViewer();S.photos=S.photos.filter(p=>p.id!==id);
-      if(S.base)S.base.collection("photos").doc(id).delete().catch(()=>toast("مقدرتش أمسح الصورة"));render();break}
+      idbDel(id).catch(()=>toast("مقدرتش أمسح الصورة"));render();break}
     case"coach":promptModal(v==="day"?"تقييم يومك":v==="rest"?"الباقي من يومك":"تقييم أسبوعك",coachPrompt(v));break;
     case"copyPrompt":if(S.flow&&S.flow.text)copyText(S.flow.text).then(ok=>toast(ok?"اتنسخ البرومبت. الصقه في الشات":"انسخ البرومبت من الخانة يدوي"));break;
     case"voiceParse":voiceParse();break;
@@ -1103,6 +1117,8 @@ function onInput(t,commit){
   switch(k){
     case"q":if(sh){sh.q=t.value;paintList()}break;
     case"gv":if(sh){sh.v=Number(t.value)||0;const e=$("#emac");if(e)e.textContent=emacHtml()}break;
+    case"bcvn":if(sh&&sh.bl){sh.bl.cvn=t.value;const e=$("#bmac");if(e)e.textContent=bPrevText()}break;
+    case"bcvk":if(sh&&sh.bl){sh.bl.cvk=t.value;const e=$("#bmac");if(e)e.textContent=bPrevText()}break;
     case"bamt":if(sh&&sh.bl){sh.bl.amt=t.value;const e=$("#bmac");if(e)e.textContent=bPrevText()}break;
     case"au":S.au[t.dataset.k]=t.value;break;
     case"ob":{const k=t.dataset.k;S.ob.d[k]=(k==="weight"||k==="height")?t.value:t.value;break}
@@ -1170,44 +1186,47 @@ async function auReset(){
 }
 function stopListeners(){(S.unsubs||[]).forEach(f=>{try{f()}catch(e){}});S.unsubs=[];S.clientsOn=0;S.clients=[];S.msgsOn=0;S.msgs=[];S.msgUn=null;S.thUn=null;S.thId=null}
 function endUser(){
-  stopListeners();S.user=null;S.base=null;S.auth="out";S.au={mode:"login",email:S.au.email||"",pw:"",msg:"",busy:0};S.profile=clone(DEF);S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.ob=null;S.flow=null;S.sheet=null;S.rmOpen=null;S.loading=true;S.tab="today";S.date=todayStr();
+  clearTimeout(Q.t.local);if(S.user&&S.loading===false)lsSave();stopListeners();S.user=null;S.base=null;S.auth="out";S.au={mode:"login",email:S.au.email||"",pw:"",msg:"",busy:0};S.profile=clone(DEF);S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.ob=null;S.flow=null;S.sheet=null;S.rmOpen=null;S.loading=true;S.tab="today";S.date=todayStr();
   drawSheet();drawFlow();drawRem();render();
 }
 function startUser(u){
   stopListeners();
-  S.user=u;S.auth="in";S.loading=true;S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;
-  S.base=S.fb.db.doc("users/"+u.uid);
-  const ready={p:0,d:0};let first=true;
-  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.profile.asCoach)startClients();startMsgs();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
-  const chk=()=>{if(ready.p&&ready.d)done()};
-  setTimeout(done,7000);
-  S.unsubs.push(S.base.onSnapshot(sn=>{
-    if(sn.exists&&!S.dirty.p){S.profile=Object.assign({},DEF,sn.data());S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});syncCustom()}
-    ready.p=1;if(first)chk();else softRender();
-  },()=>{ready.p=1;chk()}));
-  S.unsubs.push(S.base.collection("days").orderBy("d","desc").limit(150).onSnapshot(q=>{
-    const m=mergeDays(q);
-    if(first||JSON.stringify(m)!==JSON.stringify(S.days)){S.days=m;if(!first)softRender()}
-    ready.d=1;if(first)chk();
-  },()=>{ready.d=1;chk()}));
-  S.unsubs.push(S.base.collection("body").orderBy("d","desc").limit(200).onSnapshot(q=>{
-    const m={};q.docs.forEach(x=>{m[x.id]=clone(x.data())});
-    Object.keys(S.dirty).forEach(k=>{if(k[0]==="b"){const d=k.slice(1);if(S.body[d])m[d]=S.body[d]}});
-    if(JSON.stringify(m)!==JSON.stringify(S.body)){S.body=m;softRender()}
-  },()=>{}));
-  render();
+  S.user=u;S.auth="in";S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;S.base=null;
+  const fin=()=>{S.loading=false;try{const P=S.profile,now=Date.now();let ch=false;if(P.asCoach&&!P.asCoach.u){P.asCoach.u=u.uid;ch=true}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;ch=true}if(ch){saveProfile()}else cloudSoon()}catch(e){}syncCustom();if(S.profile.asCoach)startClients();startMsgs();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)};
+  const j=lsRead();
+  if(j){lsApply(j);fin();return}
+  S.loading=true;render();
+  let dn=false;const go=()=>{if(dn)return;dn=true;fin()};
+  setTimeout(go,7000);
+  migrateCloud(u).then(go,go);
+}
+/* one-time: bring old cloud copies down to this device, then keep the cloud doc minimal */
+async function migrateCloud(u){
+  const base=S.fb.db.doc("users/"+u.uid),sn=await base.get();
+  if(!sn.exists)return;
+  const d=sn.data();
+  if(S.user!==u)return;
+  const legacy=d.weight!=null||d.height!=null||d.onboarded;
+  if(!legacy){CLOUD_KEYS.forEach(k=>{if(d[k]!==undefined)S.profile[k]=d[k]});if(d.created)S.profile.created=d.created;return}
+  S.profile=Object.assign({},DEF,d);S.profile.sch=Object.assign({},DEF.sch,S.profile.sch||{});
+  try{const q=await base.collection("days").orderBy("d","desc").limit(150).get();q.docs.forEach(x=>{S.days[x.id]=clone(x.data())})}catch(e){}
+  try{const q=await base.collection("body").orderBy("d","desc").limit(200).get();q.docs.forEach(x=>{S.body[x.id]=clone(x.data())})}catch(e){}
+  try{const q=await base.collection("photos").orderBy("d","desc").limit(60).get();for(const x of q.docs)await idbPut(Object.assign({},x.data(),{id:x.id}))}catch(e){}
+  lsSave();
 }
 async function wipeAll(){
   try{
-    if(S.base){
+    if(S.fb&&S.user){
       try{await S.fb.db.doc("shares/"+S.user.uid).delete()}catch(e){}
+      const base=S.fb.db.doc("users/"+S.user.uid);
       for(const sub of ["days","body","photos"]){
-        const q=await S.base.collection(sub).get();
-        for(let i=0;i<q.docs.length;i+=400){const b=S.fb.db.batch();q.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}
+        try{const q=await base.collection(sub).get();
+        for(let i=0;i<q.docs.length;i+=400){const b=S.fb.db.batch();q.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}}catch(e){}
       }
-      await S.base.delete();
+      try{await base.delete()}catch(e){}
     }
-    try{localStorage.removeItem("kochi-v1");localStorage.removeItem("kochi-rem")}catch(e){}
+    try{localStorage.removeItem(lsKey());localStorage.removeItem("kochi-rem")}catch(e){}
+    try{await idbClear()}catch(e){}
     S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ui.wipe=0;S.ob=null;syncCustom();toast("اتمسح كل حاجة");render();
   }catch(e){toast("مقدرتش أمسح دلوقتي. جرّب تاني.")}
 }
@@ -1302,11 +1321,6 @@ document.addEventListener("focusout",()=>{setTimeout(()=>{if(S.pending&&!inField
 document.addEventListener("toggle",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.d)S.open[t.dataset.d]=t.open},true);
 
 /* ---------- start ---------- */
-function mergeDays(q){
-  const m={};q.docs.forEach(x=>{m[x.id]=clone(x.data())});
-  Object.keys(S.dirty).forEach(k=>{if(k[0]==="d"){const d=k.slice(1);if(S.days[d])m[d]=S.days[d]}});
-  return m;
-}
 function init(){
   try{S.mode=localStorage.getItem("kochi-mode")||"me"}catch(e){}
   try{const m=location.search.match(/[?&]coach=([^&#]+)/);if(m){S.pendCoach=decodeURIComponent(m[1]);localStorage.setItem("kochi-coach",S.pendCoach)}else S.pendCoach=localStorage.getItem("kochi-coach")}catch(e){}

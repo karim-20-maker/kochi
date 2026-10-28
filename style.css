@@ -196,3 +196,11 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
   .grid2{gap:8px}
   h1{font-size:22px}
 }
+
+.stp{flex-direction:column;gap:4px;width:100%}
+.stp button{width:100%;min-height:46px;border-radius:12px;font-size:24px;touch-action:manipulation}
+.stp button.up{background:var(--accent,var(--surface2));color:var(--on-accent,var(--ink))}
+.stp button:active{transform:scale(.96)}
+.stp b{font-size:24px;min-width:0;padding:2px 0}
+.ehd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ehd .x{width:40px;height:40px;font-size:22px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);cursor:pointer}
