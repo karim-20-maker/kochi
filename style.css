@@ -208,3 +208,4 @@ a.btn{text-decoration:none;display:flex;align-items:center;justify-content:cente
 .rcp h3{margin:12px 0 4px;font-size:15px}
 .rl{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:6px;line-height:1.6}
 .btn.cook{background:var(--accent);color:#fff;width:100%}
+.toast{pointer-events:none}
