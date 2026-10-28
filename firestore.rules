@@ -1,11 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Admin (verified Google email) can read and delete users' data from admin.html.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "karim.ledoyen@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
     // Each user can read and write only their own data.
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if isAdmin();
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isAdmin();
       }
     }
     match /{document=**} {

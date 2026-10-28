@@ -1092,7 +1092,7 @@ function startUser(u){
   S.user=u;S.auth="in";S.loading=true;S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;
   S.base=S.fb.db.doc("users/"+u.uid);
   const ready={p:0,d:0};let first=true;
-  const done=()=>{if(first){first=false;S.loading=false;render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
+  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
   const chk=()=>{if(ready.p&&ready.d)done()};
   setTimeout(done,7000);
   S.unsubs.push(S.base.onSnapshot(sn=>{
