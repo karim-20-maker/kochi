@@ -539,8 +539,9 @@ function consentBanner(){
   return card('<h2>الكوتش '+esc(o.n)+' عايز يتابعك</h2><p class="sub">لو وافقت، هيشوف: اسمك وإيميلك وهدفك ووزنك، وإجماليات كل يوم لآخر 7 أيام (سعرات، بروتين، كارب، دهون، مياه، نوم، خطوات، تمرين). مش هيشوف تفاصيل وجباتك ولا صورك. تقدر تفصله في أي وقت من التقدم، وبمجرد الفصل بيفقد الوصول.</p><div class="row"><button class="btn" data-act="consentYes">موافق</button><button class="btn ghost" data-act="consentNo">لأ</button></div>');
 }
 function modeBar(){
-  if(!(S.auth==="in"&&S.profile.asCoach))return "";
-  return '<div class="seg" style="margin:8px 0">'+[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+  if(S.auth!=="in"||!S.user)return "";
+  const co=S.profile.asCoach;
+  return '<div class="row" style="justify-content:space-between;align-items:center;margin:8px 0;gap:8px"><div class="seg">'+(co?[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>').join(""):'<span class="hint">'+esc(S.user.email||"")+'</span>')+'</div><button class="chip" data-act="signOut">تسجيل خروج</button></div>';
 }
 function startClients(){
   if(!S.fb||!S.user||S.clientsOn)return;S.clientsOn=1;

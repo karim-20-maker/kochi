@@ -1,5 +1,5 @@
 /* Offline shell + stale-while-revalidate for CDN assets. Bump VERSION on each release. */
-const VERSION = "kochi-v7";
+const VERSION = "kochi-v8";
 const SHELL = ["./", "index.html", "style.css", "app.js", "foods.js", "firebase-config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 const CDN = ["www.gstatic.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 self.addEventListener("install", e => {
