@@ -976,7 +976,9 @@ function act(name,t){
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
     case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
     case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
-    case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;window.open(chatgptUrl(full),"_blank","noopener");copyText(full).then(ok=>toast(ok?"اتنسخ السؤال. لو ChatGPT مظهرهوش الصقه":"افتح ChatGPT والصق السؤال"));break}
+    case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;
+      copyText(full);window.open(chatgptUrl(full),"_blank","noopener");
+      promptModal("سؤالك اتنسخ",full,"اتنسخ سؤالك ومعاه بياناتك. في ChatGPT دوس مطوّلا على خانة الكتابة واختار لصق، وابعت. لو اللصق ماشتغلش دوس \"نسخ بس\" تحت.");break}
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText();window.open(waUrl(mc.p,t),"_blank","noopener");break}
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
