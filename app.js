@@ -415,7 +415,7 @@ function kcalChart(){
 const PLAB={front:"قدام",side:"جنب",back:"ورا"};
 function viewProgress(){
   const date=todayStr(),b=S.body[date]||{},P=S.profile,tg=calc(true),tr=calc(false);
-  let h='<header class="top"><div class="min0"><h1>التقدم</h1><p class="sub">الوزن والقياسات والصور.</p></div></header>';
+  let h='<header class="top"><div class="min0"><h1>التقدم</h1><p class="sub">الوزن والقياسات والصور.</p></div>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</header>';
   h+=card('<h2>سجّل النهاردة</h2><div class="grid2"><div><label class="lb" for="bw">الوزن (كجم)</label><input class="inp" id="bw" data-in="bw" type="number" inputmode="decimal" step="0.1" value="'+esc(S.ui.bw||b.w||"")+'"></div>'
     +'<div><label class="lb" for="bwaist">الوسط عند السرة (سم)</label><input class="inp" id="bwaist" data-in="bwaist" type="number" inputmode="decimal" step="0.5" value="'+esc(S.ui.bwaist||b.waist||"")+'"></div>'
     +'<div><label class="lb" for="bchest">الصدر (سم)</label><input class="inp" id="bchest" data-in="bchest" type="number" inputmode="decimal" step="0.5" value="'+esc(S.ui.bchest||b.chest||"")+'"></div>'
