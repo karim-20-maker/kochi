@@ -615,15 +615,16 @@ function ctxText(){
 
 /* ---------- coach = ChatGPT (we prepare the prompt, the user sends it with their own free account) ---------- */
 function myCoachUrl(text){const c=S.profile.myCoach;return c?waUrl(c.p,text):""}
-function waReportText(){
-  const P=S.profile,date=S.date,tg=targetsFor(date),day=peek(date),tot=totals(day),lg=x=>(day.meals||[]).some(m=>m.slot===x);
-  const lw=Object.keys(S.body).filter(d=>S.body[d]&&S.body[d].w).sort().pop();
+function waReportText(date){
+  const P=S.profile;date=date||S.date;const tg=targetsFor(date),day=peek(date),tot=totals(day),lg=x=>(day.meals||[]).some(m=>m.slot===x);
+  const bw=(S.body[date]||{}).w,lw=Object.keys(S.body).filter(d=>S.body[d]&&S.body[d].w).sort().pop();
   const L=["تقرير "+(P.name||"المتدرب")+" ليوم "+date+" ("+DAYN[dow(date)]+")",
-   "الهدف: "+(GOALS[P.goal]||GOALS.cut).t+(lw?" | آخر وزن: "+S.body[lw].w+" كجم":""),
-   "السعرات: "+r0(tot.k)+" من "+tg.kcal,"البروتين: "+r0(tot.p)+" من "+tg.protein+" جم | كارب "+r0(tot.c)+" | دهون "+r0(tot.f),
-   "المياه: "+(day.water||0)+" من "+WG()+" كوباية","النوم: "+(day.sleep==null?"غير مسجل":day.sleep+" ساعة")+" | الخطوات: "+(day.steps||0),
-   "التمرين: "+(day.tType?TT[day.tType]:(isTrainDay(date)?"لسه/ماتمرنتش":"يوم راحة")),
-   "الأكل: "+((day.meals||[]).length?day.meals.map(m=>m.name+" ("+r0(m.k)+")").join("، "):"مفيش حاجة متسجلة")];
+   "الهدف: "+(GOALS[P.goal]||GOALS.cut).t+(bw?" | وزن النهاردة: "+bw+" كجم":(lw?" | آخر وزن: "+S.body[lw].w+" كجم":"")),
+   "السعرات: "+r0(tot.k)+" من "+tg.kcal+" | بروتين "+r0(tot.p)+" من "+tg.protein+" جم | كارب "+r0(tot.c)+" | دهون "+r0(tot.f),
+   "المياه: "+(day.water||0)+" من "+WG()+" كوباية | النوم: "+(day.sleep==null?"غير مسجل":day.sleep+" ساعة")+" | الخطوات: "+(day.steps||0),
+   "التمرين: "+(day.tType?(day.tType==="rest"?"راحة":TT[day.tType]+(day.mins?" "+day.mins+" دقيقة":"")+(day.cardio?" (مع تسخين)":"")):(isTrainDay(date)?"لسه/ماتمرنتش":"يوم راحة"))];
+  SLOTS.forEach(sl=>{const ms=(day.meals||[]).filter(m=>m.slot===sl[0]);if(ms.length)L.push(sl[1]+": "+ms.map(m=>m.name+(m.q?" - "+m.q:"")+" ("+r0(m.k)+" سعر، "+r0(m.p)+" بروتين)").join(" + "))});
+  if(!(day.meals||[]).length)L.push("الأكل: مفيش حاجة متسجلة");
   const miss=["b","l","p","d"].filter(x=>!lg(x)&&(x!=="p"||isTrainDay(date))).map(slotName);
   if(miss.length)L.push("لسه مسجلتش: "+miss.join("، "));
   return L.join("\n");
@@ -1009,7 +1010,8 @@ function reportHtml(date){
    +(miss.length?'<p class="sub">وجبات مسجلتهاش: '+miss.join("، ")+'.</p>':"")
    +'<div class="plan"><span class="pn">الخلاصة</span>'+L.map(x=>'<div class="pi"><span>'+esc(x)+'</span></div>').join("")+'</div>'
    +'<p class="sub">بكرة: '+(ns.train?"المقترح تمرين "+TT[ns.type]:"المقترح راحة ("+ns.why+")")+'.</p>'
-   +'<div class="row"><button class="btn" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي الكوتش في يومك</button></div>';
+   +(S.profile.myCoach?'<div class="row"><button class="btn" data-act="coachDay" data-d="'+date+'">ابعت تفاصيل يومي لكوتشي ('+esc(S.profile.myCoach.n)+')</button></div><div class="row"><button class="btn ghost" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي ChatGPT في يومك</button></div>'
+     :'<div class="row"><button class="btn" data-act="flowClose">تصبح على خير</button><button class="btn ghost sm" data-act="coachFromFlow">رأي الكوتش في يومك</button></div>');
 }
 function briefHtml(date,slept){
   const tg=targetsFor(date),sug=suggestTrain(date),sc=SC(),plan=planFor(date),w=dow(date),day=peek(date);
@@ -1132,7 +1134,7 @@ function act(name,t){
     case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;
       copyText(full);window.open(chatgptUrl(full),"_blank","noopener");
       promptModal("سؤالك اتنسخ",full,"اتنسخ سؤالك ومعاه بياناتك. في ChatGPT دوس مطوّلا على خانة الكتابة واختار لصق، وابعت. لو اللصق ماشتغلش دوس \"نسخ بس\" تحت.");break}
-    case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText();window.open(waUrl(mc.p,t),"_blank","noopener");break}
+    case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText(S.date);window.open(waUrl(mc.p,t),"_blank","noopener");break}
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
     case"wipe":S.ui.wipe=1;render();break;
@@ -1219,6 +1221,10 @@ function act(name,t){
       S.profile.sl={asleep:true,day:d,at:n.getTime()};saveProfile();
       S.rmOpen=null;drawRem();S.wakeAsked=true;S.flow={k:"report",date:d};drawFlow();render();break}
     case"flowClose":S.flow=null;drawFlow();break;
+    case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,txt=waReportText(d);
+      if(mc.u&&S.profile.share&&S.user){sendMsg("client",S.user.uid,txt.slice(0,990)).then(ok=>{if(ok){S.flow=null;drawFlow();S.tab="coach";S.ui.msgDraft="";toast("اتبعت لكوتشك "+mc.n);render()}})}
+      else{S.flow=null;drawFlow();window.open(waUrl(mc.p,txt),"_blank","noopener")}
+      break}
     case"coachFromFlow":{S.date=(S.profile.sl&&S.profile.sl.day)||S.date;S.flow=null;promptModal("تقييم يومك",coachPrompt("day"));break}
     case"wakeNo":S.flow=null;drawFlow();break;
     case"wakeYes":{const sl=Object.assign({},S.profile.sl),hrs=sl.at?(Date.now()-sl.at)/36e5:0,td=todayStr(),date=td===sl.day?addDays(sl.day,1):td;
