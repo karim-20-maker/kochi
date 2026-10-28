@@ -603,10 +603,11 @@ function waReportText(){
 function viewCoach(){
   const P=S.profile,mc=P.myCoach,gpt=true;
   let h='<header class="top"><div class="min0"><h1>الكوتش</h1><p class="sub">'+(mc?'كوتشك الخاص: '+esc(mc.n)+'. أو اسأل ChatGPT.':'بنجهّز لك البرومبت ببياناتك، وإنت بتبعته لـ ChatGPT بحسابك المجاني.')+'</p></div></header>';
+  if(!mc)h+=card('<h2>عندك كوتش خاص؟</h2><p class="sub">اكتب كوده أو الصق الرابط اللي بعتهولك. بياناتك اللي سجلتها قبل كده فاضلة معاك زي ما هي، والكوتش هيشوف بعد موافقتك إجماليات آخر 7 أيام بس، وتقدر تفصله في أي وقت.</p><label class="lb" for="clIn">كود الكوتش</label><input class="inp" id="clIn" data-in="cl" placeholder="مثلا KARIM2741" aria-label="كود الكوتش" autocapitalize="characters" value="'+esc(S.ui.cl||"")+'"><div class="row"><button class="btn" data-act="coachLink">اربط بالكوتش</button></div>');
   if(mc&&mc.u&&P.share){S.msgNew=0;h+=card('<h2>رسايل مع كوتشي ('+esc(mc.n)+')</h2>'+bubbles(S.msgs||[],"client")+'<textarea class="inp" id="msgIn" data-in="msgd" placeholder="اكتب رسالة لكوتشك">'+esc(S.ui.msgDraft||"")+'</textarea><div class="row"><button class="btn" data-act="msgSend">ابعت</button></div>')}
   h+=card('<h2>اسأل الكوتش</h2><label class="lb" for="chatIn">سؤالك</label><textarea class="inp" id="chatIn" data-in="chat" placeholder="مثلا: أنا جعان بالليل، آكل إيه؟">'+esc(S.ui.draft)+'</textarea>'
     +'<div class="row"><button class="btn" data-act="askGpt">اسأل ChatGPT</button>'+(mc?'<button class="btn" data-act="waSend" data-v="ask">ابعت لكوتشي ('+esc(mc.n)+') على واتساب</button>':'')+'</div>'
-    +(mc?'<div class="row"><button class="btn ghost" data-act="waSend" data-v="report">ابعت تقرير اليوم لكوتشي على واتساب</button></div>':'<p class="hint">عندك كوتش خاص؟ اربطه من التقدم ← "كوتشي الخاص" وهيظهرلك زرار واتساب.</p>')
+    +(mc?'<div class="row"><button class="btn ghost" data-act="waSend" data-v="report">ابعت تقرير اليوم لكوتشي على واتساب</button></div>':'')
     +'<p class="hint">الأزرار بتفتحلك التطبيق مباشرة والرسالة جاهزة، وإنت بتدوس إرسال.</p>');
   if(gpt){
     const btn=(k,t)=>'<div class="row"><button class="btn" data-act="coach" data-v="'+k+'">'+t+'</button></div>';
@@ -660,7 +661,7 @@ function viewClients(){
 function coachCards(){
   const P=S.profile,mc=P.myCoach,ac=P.asCoach,u=S.ui.cs||{};
   let h=card('<h2>كوتشي الخاص</h2>'+(mc
-    ?'<p class="sub">مربوط بالكوتش: <b>'+esc(mc.n)+'</b>. تقدر تبعتله تقرير يومك وأسئلتك من تبويب الكوتش.</p><button class="btn ghost sm" data-act="coachUnlink">فصل الكوتش</button>'
+    ?'<p class="sub">مربوط بالكوتش: <b>'+esc(mc.n)+'</b>. تقدر تبعتله تقرير يومك وأسئلتك من تبويب الكوتش. لو عايز تغيّر الكوتش افصله وابعت كود الجديد من تبويب الكوتش.</p><button class="btn ghost sm" data-act="coachUnlink">فصل الكوتش</button>'
     :'<p class="sub">عندك كوتش خاص؟ اكتب الكود أو الصق الرابط اللي بعتهولك.</p><input class="inp" id="clIn" data-in="cl" placeholder="كود الكوتش" aria-label="كود الكوتش" value="'+esc(S.ui.cl||"")+'"><div class="row"><button class="btn sm" data-act="coachLink">اربط</button></div>'));
   h+=card('<h2>أنا كوتش</h2>'+(ac
     ?'<p class="sub">بيبعتولك مشتركينك على واتساب: <b>'+esc(ac.n)+'</b> ('+esc(ac.p)+').</p>'+coachBox(ac)+'<div class="row"><button class="btn ghost sm" data-act="coachOff">إلغاء وضع الكوتش</button></div><p class="hint">الكود فريد ومحدش غيرك يقدر ياخده. مفيش بيانات حد بتوصلك غير اللي هو يوافق يبعتها.</p>'
