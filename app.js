@@ -1177,14 +1177,14 @@ async function wipeAll(){
 /* ---------- onboarding wizard ---------- */
 const OB_LIKES=["فراخ","لحمة","سمك","تونة","بيض","جبنة وألبان","بقوليات (فول وعدس وحمص)","خضار","فاكهة","رز ومكرونة","أكل مصري"];
 const OB_STEPS=["أهلا بيك في كوتشي","شغلك ونشاطك","هدفك وأكلك","مواعيدك","جاهز نبدأ"];
-function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC()),role:P.asCoach?"coach":"user",cn:(P.asCoach&&P.asCoach.n)||P.name||"",cp:"",cc:""}}}
+function obInit(){const P=S.profile;return{step:0,d:{name:P.name||"",sex:P.sex,weight:P.weight,height:P.height,birth:P.birth,goal:P.goal,job:P.job,gymDays:P.gymDays,split:P.split,sport:P.sport||"",likes:(P.likes||[]).slice(),avoid:P.avoid||"",out:clone(P.out||{}),sch:Object.assign({},SC()),role:P.asCoach?"coach":"user",cn:(P.asCoach&&P.asCoach.n)||P.name||"",cp:"",cc:S.pendCoach||""}}}
 const obChip=(k,v,l,on)=>'<button class="chip" aria-pressed="'+on+'" data-act="obSet" data-k="'+k+'" data-v="'+esc(v)+'">'+l+'</button>';
 function obView(){
   const o=S.ob||(S.ob=obInit()),d=o.d,st=o.step;
   const inp=(k,l,type,extra)=>'<div><label class="lb" for="ob_'+k+'">'+l+'</label><input class="inp" id="ob_'+k+'" data-in="ob" data-k="'+k+'" type="'+type+'" '+(extra||"")+' value="'+esc(d[k])+'"></div>';
   let b="";
   if(st===0)b='<p class="lb">هتستخدم كوتشي كـ:</p><div class="chips">'+obChip("role","user","مستخدم عادي",d.role==="user")+obChip("role","coach","كوتش (عندي مشتركين)",d.role==="coach")+'</div>'
-    +(d.role==="coach"?'<p class="sub">هنعملك رابط دعوة تبعته لمشتركينك، وهيبعتولك تقاريرهم وأسئلتهم على واتساب. كمّل بياناتك الشخصية كمان عشان تستخدم التطبيق لنفسك.</p>'+inp("cn","اسمك ككوتش","text")+inp("cp","رقم واتساب (مثلا 01012345678)","tel",'inputmode="tel"'):inp("cc","كود الكوتش بتاعك (لو عندك، اختياري)","text"))
+    +(d.role==="coach"?'<p class="sub">هنعملك رابط دعوة تبعته لمشتركينك، وهيبعتولك تقاريرهم وأسئلتهم على واتساب. كمّل بياناتك الشخصية كمان عشان تستخدم التطبيق لنفسك.</p>'+inp("cn","اسمك ككوتش","text")+inp("cp","رقم واتساب (مثلا 01012345678)","tel",'inputmode="tel"'):inp("cc","كود الكوتش بتاعك (لو عندك، اختياري)","text")+(parseCoachCode(d.cc)?'<p class="sub">هتتربط بالكوتش: <b>'+esc(parseCoachCode(d.cc).n)+'</b> (هنسألك على الموافقة بعد التسجيل).</p>':""))
     +'<p class="sub">كام سؤال سريع عشان نظبطلك الخطة على قدك.</p>'+inp("name","اسمك (اختياري)","text",'autocomplete="given-name"')
     +'<p class="lb">إنت:</p><div class="chips">'+obChip("sex","m","راجل",d.sex==="m")+obChip("sex","f","ست",d.sex==="f")+'</div>'
     +'<div class="grid2">'+inp("birth","شهر وسنة الميلاد","month")+inp("height","الطول (سم)","number",'inputmode="numeric"')+inp("weight","الوزن (كجم)","number",'inputmode="decimal" step="0.1"')+'</div>';
@@ -1226,7 +1226,7 @@ function obDone(){
   const d=S.ob.d,P=S.profile,wt=Number(d.weight),changed=wt!==curWeight();
   Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
   if(d.role==="coach")P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp),u:S.user?S.user.uid:""};else if(P.asCoach&&d.role==="user")P.asCoach=null;
-  {const o=parseCoachCode(d.cc);if(o)askCoach(o)}
+  {const o=parseCoachCode(d.cc);if(o){askCoach(o);S.pendCoach=null;try{localStorage.removeItem("kochi-coach")}catch(e){}}}
   saveProfile();
   if(changed||!Object.keys(S.body).length){const td=todayStr(),o=S.body[td]||{d:td};o.w=wt;S.body[td]=o;saveBody(td)}
   S.ob=null;S.tab="today";S.date=todayStr();render(false);window.scrollTo(0,0);setTimeout(checkReminders,900);
