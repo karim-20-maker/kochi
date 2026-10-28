@@ -540,12 +540,19 @@ function consentBanner(){
 }
 function modeBar(){
   if(S.auth!=="in"||!S.user)return "";
-  const co=S.profile.asCoach;
-  return '<div class="row" style="justify-content:space-between;align-items:center;margin:8px 0;gap:8px"><div class="seg">'+(co?[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>').join(""):'<span class="hint">'+esc(S.user.email||"")+'</span>')+'</div><button class="chip" data-act="signOut">تسجيل خروج</button></div>';
+  const co=S.profile.asCoach,nn=Object.keys(S.cNew||{}).length;
+  return '<div class="row" style="justify-content:space-between;align-items:center;margin:8px 0;gap:8px"><div class="seg">'+(co?[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+(x[0]==="coach"&&nn?" ("+nn+")":"")+'</button>').join(""):'<span class="hint">'+esc(S.user.email||"")+'</span>')+'</div><button class="chip" data-act="signOut">تسجيل خروج</button></div>';
 }
 function startClients(){
   if(!S.fb||!S.user||S.clientsOn)return;S.clientsOn=1;
-  S.unsubs.push(S.fb.db.collection("shares").where("coachUid","==",S.user.uid).onSnapshot(q=>{S.clients=q.docs.map(d=>Object.assign({id:d.id},d.data()));S.clientsErr=0;softRender()},()=>{S.clientsErr=1;render()}));
+  let firstSnap=true;S.cSeen=S.cSeen||{};S.cNew=S.cNew||{};
+  S.unsubs.push(S.fb.db.collection("shares").where("coachUid","==",S.user.uid).onSnapshot(q=>{
+    S.clients=q.docs.map(d=>Object.assign({id:d.id},d.data()));S.clientsErr=0;
+    const names=[];
+    S.clients.forEach(c=>{const prev=S.cSeen[c.id];if(!firstSnap&&c.updated&&(!prev||c.updated>prev)&&S.mode!=="coach"){S.cNew[c.id]=1;names.push(c.name||c.email||"مشترك")}else if(!firstSnap&&c.updated&&(!prev||c.updated>prev)){names.push(c.name||c.email||"مشترك")}S.cSeen[c.id]=c.updated||0});
+    firstSnap=false;
+    if(names.length)toast(names.join("، ")+" بعتلك تحديث");
+    softRender()},()=>{S.clientsErr=1;render()}));
 }
 function viewClients(){
   const ac=S.profile.asCoach;let h='<header class="top"><div class="min0"><h1>عملائي</h1><p class="sub">المشتركين اللي سجّلوا بالكود بتاعك وتحديثاتهم.</p></div>'+(S.user?'<button class="btn ghost sm" data-act="signOut">تسجيل خروج</button>':'')+'</header>';
@@ -902,7 +909,7 @@ function drawFlow(){
   const v=h.querySelector(".viewer");if(v)v.scrollTop=0;
 }
 function checkWake(){
-  if(S.loading||S.auth==='out'||S.auth==='wait'||!S.profile.onboarded||S.ob||S.flow||S.wakeAsked||!(S.profile.sl&&S.profile.sl.asleep))return;
+  if((S.mode==="coach"&&S.profile.asCoach)||S.loading||S.auth==='out'||S.auth==='wait'||!S.profile.onboarded||S.ob||S.flow||S.wakeAsked||!(S.profile.sl&&S.profile.sl.asleep))return;
   S.wakeAsked=true;S.rmOpen=null;drawRem();S.flow={k:"wake"};drawFlow();
 }
 
@@ -915,7 +922,7 @@ function RM(){
 }
 function remSave(){try{localStorage.setItem("kochi-rem",JSON.stringify(S.rm))}catch(e){}}
 function checkReminders(){
-  if(S.loading||S.auth==='out'||S.auth==='wait'||!S.profile.onboarded||S.ob||S.profile.rem===0||S.rmOpen||S.sheet||S.viewer||S.flow||(S.profile.sl&&S.profile.sl.asleep))return;
+  if((S.mode==="coach"&&S.profile.asCoach)||S.loading||S.auth==='out'||S.auth==='wait'||!S.profile.onboarded||S.ob||S.profile.rem===0||S.rmOpen||S.sheet||S.viewer||S.flow||(S.profile.sl&&S.profile.sl.asleep))return;
   const date=todayStr(),day=peek(date);if(day.closed)return;
   const sc=SC(),rm=RM(),now=nowHour(),t0=Date.now(),due=[];
   activeSlots(date).forEach(s=>{
@@ -967,12 +974,12 @@ function act(name,t){
     case"auReset":auReset();break;
     case"coachMode":S.profile.coachMode=v;saveProfile();render();break;
     case"coachLink":{const o=parseCoachCode(S.ui.cl);if(!o){toast("الكود مش صح");break}S.ui.cl="";askCoach(o);render();break}
-    case"mode":S.mode=v;try{localStorage.setItem("kochi-mode",v)}catch(e){}if(v==="coach")startClients();render(false);window.scrollTo(0,0);break;
+    case"mode":S.mode=v;try{localStorage.setItem("kochi-mode",v)}catch(e){}if(v==="coach"){S.rmOpen=null;drawRem();if(S.flow&&S.flow.k==="wake"){S.flow=null;drawFlow()}S.cNew={}}render(false);window.scrollTo(0,0);break;
     case"cOpen":S.ui.open=S.ui.open||{};S.ui.open[v]=!S.ui.open[v];render();break;
     case"consentYes":{const o=S.ui.consent;if(o){S.profile.myCoach=o;S.profile.coachMode="both";S.profile.share=true;S.ui.consent=null;saveProfile();toast("اتربطت بالكوتش "+o.n)}render();break}
     case"consentNo":S.ui.consent=null;render();break
     case"coachUnlink":S.profile.myCoach=null;S.profile.coachMode="gpt";S.profile.share=false;if(S.fb&&S.user)S.fb.db.doc("shares/"+S.user.uid).delete().catch(()=>{});saveProfile();render();break;
-    case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p,u:S.user?S.user.uid:""};saveProfile();render();break}
+    case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p,u:S.user?S.user.uid:""};saveProfile();startClients();render();break}
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
     case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
     case"coachShare":{const l=location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u);if(navigator.share)navigator.share({title:"كوتشي",text:"اشترك معايا في كوتشي",url:l}).catch(()=>{});else copyText(l).then(()=>toast("اتنسخ الرابط"));break}
@@ -1142,7 +1149,7 @@ function startUser(u){
   S.user=u;S.auth="in";S.loading=true;S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;
   S.base=S.fb.db.doc("users/"+u.uid);
   const ready={p:0,d:0};let first=true;
-  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.mode==="coach"&&S.profile.asCoach)startClients();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
+  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.profile.asCoach)startClients();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
   const chk=()=>{if(ready.p&&ready.d)done()};
   setTimeout(done,7000);
   S.unsubs.push(S.base.onSnapshot(sn=>{
@@ -1227,7 +1234,7 @@ function obValid(){
 function obDone(){
   const d=S.ob.d,P=S.profile,wt=Number(d.weight),changed=wt!==curWeight();
   Object.assign(P,{name:(d.name||"").trim().slice(0,30),sex:d.sex,height:Number(d.height),birth:d.birth,goal:d.goal,job:d.job,gymDays:d.gymDays,split:d.split,sport:(d.sport||"").trim().slice(0,60),likes:d.likes.slice(),avoid:(d.avoid||"").trim().slice(0,100),out:clone(d.out),sch:Object.assign({},SC(),d.sch),weight:wt,onboarded:true});
-  if(d.role==="coach")P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp),u:S.user?S.user.uid:""};else if(P.asCoach&&d.role==="user")P.asCoach=null;
+  if(d.role==="coach"){P.asCoach={n:d.cn.trim().slice(0,40),p:waNum(d.cp),u:S.user?S.user.uid:""};startClients()}else if(P.asCoach&&d.role==="user")P.asCoach=null;
   {const o=parseCoachCode(d.cc);if(o){askCoach(o);S.pendCoach=null;try{localStorage.removeItem("kochi-coach")}catch(e){}}}
   saveProfile();
   if(changed||!Object.keys(S.body).length){const td=todayStr(),o=S.body[td]||{d:td};o.w=wt;S.body[td]=o;saveBody(td)}
@@ -1239,15 +1246,15 @@ function inField(){const a=document.activeElement;return !!(a&&a!==document.body
 function render(keep){
   applySplit();
   const y=window.scrollY;
-  let body,nav=true;
+  let body,nav=true,wide=false;
   if(S.auth==="wait"){body='<div class="card"><p class="sub">ثانية واحدة...</p></div>';nav=false}
   else if(S.auth==="out"){body=authView();nav=false}
   else if(S.loading){body='<div class="card"><p class="sub">بجهّز بياناتك...</p></div>';nav=false}
   else if(!S.profile.onboarded||S.ob){body=obView();nav=false}
-  else if(S.auth==="in"&&S.profile.asCoach&&S.mode==="coach"){body=modeBar()+viewClients();nav=false}
-  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();
+  else if(S.auth==="in"&&S.profile.asCoach&&S.mode==="coach"){body=modeBar()+viewClients();nav=false;wide=true}
+  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();wide=true;
     if(S.auth==="local"&&S.tab==="today")body='<div class="card"><p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس. لتسجيل الدخول والتزامن، ضيف إعدادات Firebase.</p></div>'+body}
-  $("#app").innerHTML='<main class="app">'+body+'</main>'+(nav?navHtml():"");
+  $("#app").innerHTML='<main class="app'+(wide?' wide':'')+'">'+body+'</main>'+(nav?navHtml():"");
   S.pending=false;
   if(keep!==false)window.scrollTo(0,y);
 }
