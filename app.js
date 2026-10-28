@@ -222,8 +222,31 @@ function pushCloud(){
   S.fb.db.doc("users/"+S.user.uid).set(d,{merge:true}).catch(()=>{});
 }
 let cloudT=null;const cloudSoon=()=>{clearTimeout(cloudT);cloudT=setTimeout(pushCloud,1200)};
-function saveDay(d){sched();shareSoon()}
-function saveBody(d){sched();shareSoon()}
+/* daily logs + weights: local first, then backed up to the user's own cloud space so any device can restore them */
+const dirty={d:{},b:{}};let dataT=null;
+const cloudData=()=>{clearTimeout(dataT);dataT=setTimeout(pushData,2000)};
+function saveDay(d){if(S.user&&S.days[d]){S.days[d].u=Date.now();dirty.d[d]=1;cloudData()}sched();shareSoon()}
+function saveBody(d){if(S.user&&S.body[d]){S.body[d].u=Date.now();dirty.b[d]=1;cloudData()}sched();shareSoon()}
+function pushData(){
+  if(!S.fb||!S.user)return;const base=S.fb.db.doc("users/"+S.user.uid),b=S.fb.db.batch(),dk=Object.keys(dirty.d),bk=Object.keys(dirty.b);let n=0;
+  dk.forEach(k=>{if(S.days[k]){b.set(base.collection("days").doc(k),clone(S.days[k]));n++}delete dirty.d[k]});
+  bk.forEach(k=>{if(S.body[k]){b.set(base.collection("body").doc(k),clone(S.body[k]));n++}delete dirty.b[k]});
+  if(!n)return;
+  b.commit().catch(()=>{dk.forEach(k=>dirty.d[k]=1);bk.forEach(k=>dirty.b[k]=1);setTimeout(cloudData,30000)});
+}
+async function pullData(u){
+  if(!S.fb||S.user!==u)return;
+  try{
+    const base=S.fb.db.doc("users/"+u.uid);
+    const [qd,qb]=await Promise.all([base.collection("days").orderBy("d","desc").limit(200).get(),base.collection("body").orderBy("d","desc").limit(300).get()]);
+    if(S.user!==u)return;let ch=false;
+    const merge=(q,loc,dm)=>{const cid={};q.docs.forEach(x=>{const c=x.data(),l=loc[x.id];cid[x.id]=c.u||0;if(!l||(c.u||0)>(l.u||0)){loc[x.id]=clone(c);ch=true}});
+      Object.keys(loc).forEach(k=>{if(!(k in cid)||(loc[k].u||0)>cid[k])dm[k]=1})};
+    merge(qd,S.days,dirty.d);merge(qb,S.body,dirty.b);
+    if(ch){lsSave();softRender()}
+    if(Object.keys(dirty.d).length||Object.keys(dirty.b).length)cloudData();
+  }catch(e){}
+}
 function saveProfile(){sched();cloudSoon();shareSoon()}
 /* photos live only on the device (IndexedDB) */
 function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("kochi-photos-"+(S.user?S.user.uid:"local"),1);r.onupgradeneeded=()=>r.result.createObjectStore("p",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
@@ -1253,7 +1276,7 @@ function authView(){
    +'<button class="btn" data-act="auGo"'+(a.busy?" disabled":"")+'>'+(a.busy?"ثانية...":reg?"إنشاء الحساب":"دخول")+'</button>'
    +'<button class="btn ghost" data-act="auGoogle">الدخول بحساب جوجل</button>'
    +(reg?"":'<button class="btn ghost sm" data-act="auReset">نسيت الباسورد؟</button>')
-   +'<p class="hint">بياناتك خاصة بيك ومحدش يقدر يشوفها غيرك. الأرقام والاقتراحات تقديرية ومش بديل لدكتور أو أخصائي تغذية. لو سنك أقل من 18 استشر دكتور أو مدرب قبل أي نظام.</p>');
+   +'<p class="hint">بياناتك محفوظة على حسابك وتقدر تدخل بيها من أي جهاز، ومش بتتشارك مع حد غير الكوتش اللي إنت بتوافق عليه. الأرقام والاقتراحات تقديرية ومش بديل لدكتور أو أخصائي تغذية. لو سنك أقل من 18 استشر دكتور أو مدرب قبل أي نظام.</p>');
 }
 async function auGo(){
   const a=S.au;if(!S.fb||a.busy)return;
@@ -1285,7 +1308,7 @@ function endUser(){
 function startUser(u){
   stopListeners();
   S.user=u;S.auth="in";S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;S.base=null;
-  const fin=()=>{S.loading=false;try{const P=S.profile,now=Date.now();let ch=false;if(P.asCoach&&!P.asCoach.u){P.asCoach.u=u.uid;ch=true}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;ch=true}if(ch){saveProfile()}else cloudSoon()}catch(e){}syncCustom();if(S.profile.asCoach){startClients();if(!S.profile.asCoach.code)autoCode()}startMsgs();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)};
+  const fin=()=>{S.loading=false;try{const P=S.profile,now=Date.now();let ch=false;if(P.asCoach&&!P.asCoach.u){P.asCoach.u=u.uid;ch=true}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;ch=true}if(ch){saveProfile()}else cloudSoon()}catch(e){}syncCustom();if(S.profile.asCoach){startClients();if(!S.profile.asCoach.code)autoCode()}startMsgs();render();pullData(u);setTimeout(checkWake,400);setTimeout(checkReminders,900)};
   const j=lsRead();
   if(j){lsApply(j);fin();return}
   S.loading=true;render();
