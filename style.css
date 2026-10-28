@@ -233,3 +233,34 @@ body.kb .app{padding-bottom:24px}
 }
 .cmsg{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
 .cmsg h3{margin:0;font-size:15px}
+/* ---- web hub (today) ---- */
+@media (min-width:1000px){
+  .hub{display:flex;flex-direction:column;gap:16px}
+  .hubtop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+  .hubtop>.card{margin:0;height:100%}
+  .htiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .htile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-height:128px;font:inherit;color:var(--ink)}
+  button.htile{cursor:pointer}
+  button.htile[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  button.htile[aria-pressed="true"] .ts,button.htile[aria-pressed="true"] .tl{color:inherit;opacity:.9}
+  .htile .tl{font-weight:700;font-size:14px}
+  .htile b{font-size:26px;line-height:1.1}
+  .htile .ts{font-size:12px;color:var(--muted)}
+  .htile .inp{text-align:center;max-width:140px}
+  .hstp{display:flex;align-items:center;gap:10px}
+  .hstp button{width:40px;height:40px;border-radius:12px;border:0;font-size:22px;cursor:pointer}
+  .hstp .up{background:var(--accent);color:var(--accent-ink)}
+  .hstp .dn{background:var(--surface2);color:var(--ink)}
+  .hubpanel{background:var(--surface2);border-radius:20px;padding:14px}
+  .cartabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .carw{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:10px}
+  .carw .cbtn{margin-top:8px;position:sticky;top:90px}
+  .car{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;align-items:flex-start;padding:2px;padding-inline-end:calc(100% - min(440px,40vw))}
+  .car::-webkit-scrollbar{display:none}
+  .car-i{flex:0 0 min(440px,40vw);scroll-snap-align:start}
+  .car-i>.card{margin:0}
+  .cbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:grid;place-items:center}
+  .cbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .hubfoot{display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:center}
+  .hubfoot .hint{grid-column:1/-1;margin:0}
+}

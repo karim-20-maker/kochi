@@ -306,6 +306,19 @@ function dayTitle(d){const x=parse(d);return DAYN[x.getDay()]+" "+x.getDate()+" 
 function dayKind(d){const o=(S.profile.out||{})[dow(d)]||[];return (o.length?"أكل برة: "+o.map(slotName).join("، "):"أكل بيت")+" · "+(isTrainDay(d)?"يوم تمرين":"يوم راحة")}
 
 /* ---------- TODAY ---------- */
+const isWide=()=>{try{return matchMedia("(min-width:1000px)").matches}catch(e){return false}};
+function carousel(id,items,idx){
+  const arrow=(v,rtlDir)=>'<button class="cbtn" data-act="carGo" data-c="'+id+'" data-v="'+v+'" aria-label="'+(v==="next"?"اللي بعده":"اللي قبله")+'">'+chev(rtlDir)+'</button>';
+  return '<div class="cartabs">'+items.map((x,i)=>'<button class="chip" data-act="carTo" data-c="'+id+'" data-v="'+i+'" aria-pressed="'+(i===idx)+'">'+x.t+'</button>').join("")+'</div>'
+    +'<div class="carw">'+arrow("prev",true)+'<div class="car" data-c="'+id+'">'+items.map(x=>'<div class="car-i">'+x.html+'</div>').join("")+'</div>'+arrow("next",false)+'</div>';
+}
+function carEl(c){return document.querySelector('.car[data-c="'+c+'"]')}
+function carStep(el){const i=el.children[1]||el.children[0];if(!i)return 1;const g=parseFloat(getComputedStyle(el).columnGap||getComputedStyle(el).gap)||0;return i.offsetWidth+g}
+function carSet(c,idx,smooth){const el=carEl(c);if(!el)return;const n=el.children.length;idx=Math.max(0,Math.min(n-1,idx));(S.ui.carIdx=S.ui.carIdx||{})[c]=idx;const dir=getComputedStyle(el).direction==="rtl"?-1:1;el.scrollTo({left:dir*idx*carStep(el),behavior:smooth?"smooth":"instant"});carTabs(c,idx)}
+function carTabs(c,idx){document.querySelectorAll('.cartabs [data-c="'+c+'"]').forEach((b,i)=>b.setAttribute("aria-pressed",String(i===idx)))}
+function carRestore(){document.querySelectorAll(".car").forEach(el=>{const c=el.dataset.c,idx=(S.ui.carIdx||{})[c]||0;const dir=getComputedStyle(el).direction==="rtl"?-1:1;el.scrollTo({left:dir*idx*carStep(el),behavior:"instant"})})}
+document.addEventListener("scroll",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("car"))return;const c=el.dataset.c,idx=Math.round(Math.abs(el.scrollLeft)/carStep(el));(S.ui.carIdx=S.ui.carIdx||{})[c]=idx;carTabs(c,idx)},true);
+try{matchMedia("(min-width:1000px)").addEventListener("change",()=>render())}catch(e){}
 function viewToday(){
   const date=S.date,day=peek(date),tot=totals(day),tg=targetsFor(date),sug=suggestTrain(date),isToday=date===todayStr();
   const res=adaptive(date,day,tot,tg);
@@ -313,10 +326,10 @@ function viewToday(){
    +'<button class="ib" data-act="dprev" aria-label="اليوم اللي قبله">'+chev(true)+'</button>'
    +(isToday?"":'<button class="ib" data-act="dtoday" aria-label="رجوع للنهاردة">اليوم</button>')
    +'<button class="ib" data-act="dnext" aria-label="اليوم اللي بعده">'+chev(false)+'</button></div></header>';
-  h+=card('<div class="sumrow">'+ring(tot.k,tg.kcal)+'<div class="macros">'+mrow("بروتين",tot.p,tg.protein,"--protein")+mrow("كارب",tot.c,tg.carbs,"--carb")+mrow("دهون",tot.f,tg.fat,"--fat")+'</div></div>'
+  const sumCard=card('<div class="sumrow">'+ring(tot.k,tg.kcal)+'<div class="macros">'+mrow("بروتين",tot.p,tg.protein,"--protein")+mrow("كارب",tot.c,tg.carbs,"--carb")+mrow("دهون",tot.f,tg.fat,"--fat")+'</div></div>'
     +'<p class="hint">هدف اليوم '+tg.kcal+' سعر ('+(isTrainDay(date)?"يوم تمرين":"يوم راحة")+'). الأرقام تقريبية، المهم الاستمرار.</p>');
-  h+=remainHtml(res,tg,date);
-  h+='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button class="up" data-act="water" data-v="1" aria-label="أكتر">+</button><b>'+(day.water||0)+'</b><button class="dn" data-act="water" data-v="-1" aria-label="أقل">−</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
+  const remainH=remainHtml(res,tg,date);
+  const trioH='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button class="up" data-act="water" data-v="1" aria-label="أكتر">+</button><b>'+(day.water||0)+'</b><button class="dn" data-act="water" data-v="-1" aria-label="أقل">−</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
     +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button class="up" data-act="sleep" data-v="0.5" aria-label="أكتر">+</button><b>'+(day.sleep==null?"–":day.sleep)+'</b><button class="dn" data-act="sleep" data-v="-0.5" aria-label="أقل">−</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
     +'<div class="tile"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>';
   const main=[];(S.profile.gymDays>0?CYCLE:[]).concat((S.profile.acts||[]).map(a=>a.k)).forEach(k=>{if(main.indexOf(k)<0)main.push(k)});
@@ -328,13 +341,14 @@ function viewToday(){
   const mins=day.mins||0,burn=(day.tType&&day.tType!=="rest"&&mins>0)?r0((MET[day.tType]||5)*curWeight()*mins/60):0;
   const tmode=day.tType==="rest"?"rest":(day.tType||S.ui.tOpen===date)?"train":"";
   const chip=t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>';
-  h+=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p><div class="seg2"><button class="chip'+((!tmode&&sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="train")+'" data-act="tmode" data-v="train">تمرين</button><button class="chip'+((!tmode&&!sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="rest")+'" data-act="tmode" data-v="rest">راحة</button></div>'
-    +(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
-    +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"")
-    +(day.tType&&day.tType!=="rest"?'<p class="lb">المدة (دقيقة):</p><div class="chips">'+[30,45,60,90,120].map(n=>'<button class="chip" aria-pressed="'+(mins===n)+'" data-act="tmin" data-v="'+n+'">'+n+'</button>').join("")+'</div>'+(burn?'<p class="hint">حرق تقريبي حوالي '+burn+' سعر (تقدير، ومش بنزوده على سعراتك لأن هدفك محسوب لأيام التمرين أصلا).</p>':""):"")
-    +(day.tType==="rest"?"":'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>'));
+  const trSeg='<div class="seg2"><button class="chip'+((!tmode&&sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="train")+'" data-act="tmode" data-v="train">تمرين</button><button class="chip'+((!tmode&&!sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="rest")+'" data-act="tmode" data-v="rest">راحة</button></div>';
+  const trTypes=(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
+    +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"");
+  const trMins=(day.tType&&day.tType!=="rest"?'<p class="lb">المدة (دقيقة):</p><div class="chips">'+[30,45,60,90,120].map(n=>'<button class="chip" aria-pressed="'+(mins===n)+'" data-act="tmin" data-v="'+n+'">'+n+'</button>').join("")+'</div>'+(burn?'<p class="hint">حرق تقريبي حوالي '+burn+' سعر (تقدير، ومش بنزوده على سعراتك لأن هدفك محسوب لأيام التمرين أصلا).</p>':""):"");
+  const trWarm=(day.tType==="rest"?"":'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>');
+  const trainCard=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p>'+trSeg+trTypes+trMins+trWarm);
   const plan=planFor(date),actv=activeSlots(date);
-  h+='<h2 style="margin-top:4px">الأكل والمشروبات</h2>';
+  const slotsH=[];
   SLOTS.forEach(s=>{
     const id=s[0];
     const logged=(day.meals||[]).map((m,i)=>({m,i})).filter(x=>x.m.slot===id);
@@ -343,7 +357,7 @@ function viewToday(){
       if(m.parts&&m.parts.length>1)return '<div class="mgrp"><div class="mgh"><b>'+esc(m.title||"وجبة")+'</b><span>'+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح الوجبة كلها">مسح الكل</button></div>'
         +m.parts.map((p,j)=>'<div class="ent"><div class="nm"><b>'+esc(p.nm)+'</b><span>'+esc(p.q||"")+(p.q?" · ":"")+r0(p.k)+' سعر · '+r0(p.p)+' بروتين</span></div><button class="x" data-act="delPart" data-v="'+x.i+':'+j+'" aria-label="شيل '+esc(p.nm)+'">×</button></div>').join("")+'</div>';
       return '<div class="ent"><div class="nm"><b>'+esc(m.name)+'</b><span>'+esc(m.q||"")+(m.q?" · ":"")+r0(m.k)+' سعر · '+r0(m.p)+' بروتين</span></div><button class="x" data-act="delMeal" data-v="'+x.i+'" aria-label="مسح">×</button></div>'}).join("");
-    if(id==="m"){h+=drinksCard(day,res,logged,sk,entries);return}
+    if(id==="m"){slotsH.push({id,t:s[1],html:drinksCard(day,res,logged,sk,entries)});return}
     if(id==="p"&&actv.indexOf("p")<0&&!logged.length)return;
     const opts=plan[id]||[];
     let b='<div class="slot-h"><h3>'+s[1]+'</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
@@ -363,10 +377,33 @@ function viewToday(){
       if(id!=="b")favsOf(id).forEach((f,i)=>{b+=favCard(f,id,i)});
     }
     b+='<div class="row">'+(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button></div>';
-    h+=card(b,"slot");
+    slotsH.push({id,t:s[1],html:card(b,"slot")});
   });
-  h+='<button class="btn ghost" data-act="tab" data-v="coach">اسأل الكوتش عن يومك</button>';
-  if(isToday)h+='<button class="btn" data-act="sleepNow">أنا داخل أنام</button><p class="hint">بيقفل اليوم ويطلعلك تقرير، وبيسكت التنبيهات لحد ما تصحى.</p>';
+  const askB='<button class="btn ghost" data-act="tab" data-v="coach">اسأل الكوتش عن يومك</button>';
+  const nightB=isToday?'<button class="btn" data-act="sleepNow">أنا داخل أنام</button><p class="hint">بيقفل اليوم ويطلعلك تقرير، وبيسكت التنبيهات لحد ما تصحى.</p>':"";
+  if(isWide()){
+    if(S.ui.carDate!==date){S.ui.carDate=date;S.ui.carIdx={}}
+    const ci=S.ui.carIdx||(S.ui.carIdx={});
+    const hub=S.ui.hub||"food";
+    if(ci.food==null){const o=slotsH.findIndex(x=>res.open.indexOf(x.id)>=0);ci.food=o>=0?o:0}
+    if(ci.train==null)ci.train=tmode==="train"?(day.tType&&day.tType!=="rest"?2:1):0;
+    const eaten=slotsH.filter(x=>x.id!=="m"&&(day.meals||[]).some(m=>m.slot===x.id)).length,tot5=slotsH.filter(x=>x.id!=="m").length;
+    const trLabel=day.tType?(day.tType==="rest"?"راحة":TT[day.tType]+(day.mins?" · "+day.mins+" د":"")):(sug.train?"المقترح: "+TT[sug.type]:"المقترح: راحة");
+    const tile=(id,ic,t,v,sub)=>'<button class="htile" data-act="hubOpen" data-v="'+id+'" aria-pressed="'+(hub===id)+'"><span class="tl">'+t+'</span><b class="num">'+v+'</b><span class="ts">'+sub+'</span></button>';
+    const stp=(t,act,step,val,sub)=>'<div class="htile st"><span class="tl">'+t+'</span><div class="hstp"><button class="dn" data-act="'+act+'" data-v="-'+step+'" aria-label="أقل">−</button><b class="num">'+val+'</b><button class="up" data-act="'+act+'" data-v="'+step+'" aria-label="أكتر">+</button></div><span class="ts">'+sub+'</span></div>';
+    let panel;
+    if(hub==="food")panel=carousel("food",slotsH.map(x=>({t:x.t,html:x.html})),ci.food);
+    else panel=carousel("train",[{t:"تمرين ولا راحة",html:card('<h2>اتمرنت النهاردة؟</h2><p class="sub">'+esc(sugText)+'</p>'+trSeg)},
+      {t:"نوع التمرين",html:card('<h2>اتمرنت إيه؟</h2>'+(trTypes||'<p class="hint">اختار "تمرين" الأول.</p>'))},
+      {t:"المدة والتسخين",html:card('<h2>المدة</h2>'+(trMins||'<p class="hint">اختار نوع التمرين الأول.</p>')+trWarm)}],ci.train);
+    h+='<div class="hub span"><div class="hubtop">'+sumCard+remainH+'</div>'
+      +'<div class="htiles">'+tile("food","","الأكل",eaten+"/"+tot5,r0(tot.k)+" سعر اتاكلت")+tile("train","","التمرين",tmode==="rest"?"راحة":(day.tType?"✓":"–"),esc(trLabel))
+      +stp("مياه","water",1,day.water||0,"من "+WG()+" كوباية")+stp("نوم","sleep",.5,day.sleep==null?"–":day.sleep,"ساعات (7 إلى 8)")
+      +'<div class="htile st"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>'
+      +'<div class="hubpanel">'+panel+'</div><div class="hubfoot">'+askB+nightB+'</div></div>';
+    return h;
+  }
+  h+=sumCard+remainH+trioH+trainCard+'<h2 style="margin-top:4px">الأكل والمشروبات</h2>'+slotsH.map(x=>x.html).join("")+askB+nightB;
   return h;
 }
 
@@ -1091,9 +1128,12 @@ function act(name,t){
     case"dtoday":S.date=todayStr();render();break;
     case"water":mut(S.date,d=>{d.water=clamp((d.water||0)+Number(v),0,30)});break;
     case"sleep":mut(S.date,d=>{const s=d.sleep==null?7:d.sleep;d.sleep=clamp(s+Number(v),3,12)});break;
-    case"ttype":mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false;d.mins=0}else{d.tType=v;d.trained=v!=="rest";if(v==="rest")d.mins=0}});break;
+    case"ttype":(S.ui.carIdx=S.ui.carIdx||{}).train=(getDay(S.date).tType===v?1:2);mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false;d.mins=0}else{d.tType=v;d.trained=v!=="rest";if(v==="rest")d.mins=0}});break;
     case"tmin":mut(S.date,d=>{d.mins=d.mins===Number(v)?0:Number(v)});break;
-    case"tmode":if(v==="rest"){S.ui.tOpen=null;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null}else{d.tType="rest";d.trained=false;d.mins=0}})}else{S.ui.tOpen=(S.ui.tOpen===S.date&&!(S.date&&getDay(S.date).tType))?null:S.date;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null;d.trained=false}})}render();break;
+    case"tmode":(S.ui.carIdx=S.ui.carIdx||{}).train=(v==="rest"?0:1);if(v==="rest"){S.ui.tOpen=null;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null}else{d.tType="rest";d.trained=false;d.mins=0}})}else{S.ui.tOpen=(S.ui.tOpen===S.date&&!(S.date&&getDay(S.date).tType))?null:S.date;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null;d.trained=false}})}render();break;
+    case"hubOpen":S.ui.hub=v;render();break;
+    case"carTo":carSet(t.dataset.c,Number(v),true);break;
+    case"carGo":{const c=t.dataset.c,el=carEl(c);if(!el)break;const cur=(S.ui.carIdx||{})[c]||0;carSet(c,cur+(v==="next"?1:-1),true);break}
     case"moreAct":S.ui.moreAct=!S.ui.moreAct;render();break;
     case"obAct":{const a=S.ob.d.acts,i=a.findIndex(x=>x.k===v);if(i>=0)a.splice(i,1);else a.push({k:v,days:[]});render();break}
     case"obActDay":{const a=S.ob.d.acts.find(x=>x.k===t.dataset.k);if(a){const n=Number(v),i=a.days.indexOf(n);if(i>=0)a.days.splice(i,1);else a.days.push(n)}render();break}
@@ -1434,6 +1474,7 @@ function render(keep){
     if(S.auth==="local"&&S.tab==="today")body='<div class="card"><p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس. لتسجيل الدخول والتزامن، ضيف إعدادات Firebase.</p></div>'+body}
   $("#app").innerHTML='<main class="app'+(wide?' wide':'')+'">'+body+'</main>'+(nav?navHtml():"");
   S.pending=false;
+  carRestore();
   if(keep!==false)window.scrollTo(0,y);
 }
 function softRender(){if(inField()){S.pending=true;return}render()}
