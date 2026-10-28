@@ -218,3 +218,5 @@ body.kb .nav{display:none}
 body.kb .app{padding-bottom:24px}
 .sheet{max-height:92dvh}
 @supports not (height:1dvh){.sheet{max-height:90%}}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.seg2 .chip{justify-content:center;text-align:center;padding:12px 8px;font-weight:700}

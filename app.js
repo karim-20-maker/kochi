@@ -301,8 +301,11 @@ function viewToday(){
   const types=main.concat(["rest"]);
   const sugText=day.tType?(day.tType==="rest"?"سجّلت النهاردة راحة.":"سجّلت: "+TT[day.tType]+" ✓"):(sug.train?"المقترح النهاردة: "+TT[sug.type]:"المقترح النهاردة: راحة ("+sug.why+")");
   const mins=day.mins||0,burn=(day.tType&&day.tType!=="rest"&&mins>0)?r0((MET[day.tType]||5)*curWeight()*mins/60):0;
-  h+=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p><div class="chips">'+types.map(t=>'<button class="chip'+((!day.tType&&((t==="rest"&&!sug.train)||(t===sug.type&&sug.train)))?" sug":"")+'" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>').join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
-    +(S.ui.moreAct?'<div class="chips">'+more.map(t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>').join("")+'</div>':"")
+  const tmode=day.tType==="rest"?"rest":(day.tType||S.ui.tOpen===date)?"train":"";
+  const chip=t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>';
+  h+=card('<h2>التمرين</h2><p class="sub">'+esc(sugText)+'</p><div class="seg2"><button class="chip'+((!tmode&&sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="train")+'" data-act="tmode" data-v="train">تمرين</button><button class="chip'+((!tmode&&!sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="rest")+'" data-act="tmode" data-v="rest">راحة</button></div>'
+    +(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ رياضة تانية")+'</button>':"")+'</div>'
+    +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"")
     +(day.tType&&day.tType!=="rest"?'<p class="lb">المدة (دقيقة):</p><div class="chips">'+[30,45,60,90,120].map(n=>'<button class="chip" aria-pressed="'+(mins===n)+'" data-act="tmin" data-v="'+n+'">'+n+'</button>').join("")+'</div>'+(burn?'<p class="hint">حرق تقريبي حوالي '+burn+' سعر (تقدير، ومش بنزوده على سعراتك لأن هدفك محسوب لأيام التمرين أصلا).</p>':""):"")
     +'<label class="chk"><input type="checkbox" id="cardio" data-in="cardio"'+(day.cardio?" checked":"")+'> عملت تسخين قبل التمرين</label>');
   const plan=planFor(date),actv=activeSlots(date);
@@ -1056,6 +1059,7 @@ function act(name,t){
     case"sleep":mut(S.date,d=>{const s=d.sleep==null?7:d.sleep;d.sleep=clamp(s+Number(v),3,12)});break;
     case"ttype":mut(S.date,d=>{if(d.tType===v){d.tType=null;d.trained=false;d.mins=0}else{d.tType=v;d.trained=v!=="rest";if(v==="rest")d.mins=0}});break;
     case"tmin":mut(S.date,d=>{d.mins=d.mins===Number(v)?0:Number(v)});break;
+    case"tmode":if(v==="rest"){S.ui.tOpen=null;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null}else{d.tType="rest";d.trained=false;d.mins=0}})}else{S.ui.tOpen=(S.ui.tOpen===S.date&&!(S.date&&getDay(S.date).tType))?null:S.date;mut(S.date,d=>{if(d.tType==="rest"){d.tType=null;d.trained=false}})}render();break;
     case"moreAct":S.ui.moreAct=!S.ui.moreAct;render();break;
     case"obAct":{const a=S.ob.d.acts,i=a.findIndex(x=>x.k===v);if(i>=0)a.splice(i,1);else a.push({k:v,days:[]});render();break}
     case"obActDay":{const a=S.ob.d.acts.find(x=>x.k===t.dataset.k);if(a){const n=Number(v),i=a.days.indexOf(n);if(i>=0)a.days.splice(i,1);else a.days.push(n)}render();break}
