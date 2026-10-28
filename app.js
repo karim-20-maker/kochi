@@ -186,7 +186,25 @@ function pushShare(){
   const P=S.profile,mc=P.myCoach;if(!S.user||!S.fb||!mc||!mc.u||!P.share)return;
   const days=[];for(let i=0;i<7;i++){const d=addDays(todayStr(),-i),x=S.days[d];if(!x)continue;const t=totals(x);days.push({d:d,k:r0(t.k),p:r0(t.p),c:r0(t.c),f:r0(t.f),w:x.water||0,s:x.sleep==null?null:x.sleep,st:x.steps||0,t:x.tType||"",n:(x.meals||[]).length})}
   const tg=targetsFor(todayStr());
-  S.fb.db.doc("shares/"+S.user.uid).set({coachUid:mc.u,name:P.name||"",email:S.user.email||"",goal:P.goal,tk:tg.kcal,tp:tg.protein,wg:WG(),w:curWeight(),days:days,updated:Date.now()}).catch(()=>{});
+  S.fb.db.doc("shares/"+S.user.uid).set({coachUid:mc.u,name:P.name||"",email:S.user.email||"",goal:P.goal,tk:tg.kcal,tp:tg.protein,wg:WG(),w:curWeight(),days:days,lastMsg:lastClientMsg(),updated:Date.now()}).catch(()=>{});
+}
+function lastClientMsg(){const a=(S.msgs||[]).filter(m=>m.from==="client");const m=a[a.length-1];return m?{at:m.at,text:String(m.text).slice(0,80)}:null}
+const msgCol=id=>S.fb.db.collection("shares/"+id+"/msgs");
+function mapMsgs(q){return q.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>a.at-b.at)}
+function startMsgs(){
+  const P=S.profile,mc=P.myCoach;if(!S.fb||!S.user||!mc||!mc.u||!P.share||S.msgsOn)return;S.msgsOn=1;let first=true;
+  S.msgUn=msgCol(S.user.uid).orderBy("at","desc").limit(50).onSnapshot(q=>{
+    const old=(S.msgs||[]).length;S.msgs=mapMsgs(q);
+    if(!first&&S.msgs.length>old){const m=S.msgs[S.msgs.length-1];if(m.from==="coach"){if(!(S.tab==="coach"&&S.mode!=="coach"))S.msgNew=(S.msgNew||0)+1;toast("الكوتش "+esc(mc.n)+" بعتلك رسالة")}}
+    first=false;softRender()},()=>{});
+  S.unsubs.push(()=>{if(S.msgUn){S.msgUn();S.msgUn=null}});
+}
+function stopMsgs(){if(S.msgUn){S.msgUn();S.msgUn=null}S.msgsOn=0;S.msgs=[]}
+function bubbles(list,me){return list.length?'<div class="chat" id="thr">'+list.map(m=>'<div class="bub '+(m.from===me?'u':'a')+'">'+esc(m.text)+'<br><small style="opacity:.7">'+esc(new Date(m.at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</small></div>').join("")+'</div>':'<p class="hint">مفيش رسايل لسه.</p>'}
+async function sendMsg(from,uid,text){
+  text=(text||"").trim().slice(0,1000);if(!text||!S.fb||!S.user)return false;
+  try{await msgCol(uid).add({from:from,text:text,at:Date.now()});if(from==="client"){S.msgs=(S.msgs||[]).concat([{from:"client",text:text,at:Date.now()}]);shareSoon()}return true}
+  catch(e){toast("مقدرتش أبعت الرسالة. جرّب تاني");return false}
 }
 function askCoach(o){if(o.u&&S.user){S.ui.consent=o}else{S.profile.myCoach=o;S.profile.coachMode="both";saveProfile()}}
 function mut(date,fn){const d=getDay(date);fn(d);saveDay(date);render()}
@@ -204,7 +222,7 @@ const NAV=[["today","النهاردة",'<rect x="4" y="5" width="16" height="15"
  ["train","التمرين",'<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>'],
  ["prog","التقدم",'<path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/>'],
  ["coach","الكوتش",'<path d="M5 6h14a1 1 0 011 1v8a1 1 0 01-1 1h-7l-4 3v-3H5a1 1 0 01-1-1V7a1 1 0 011-1z"/>']];
-function navHtml(){return '<nav class="nav" aria-label="التنقل"><div class="nav-in">'+NAV.map(n=>'<button class="nb" data-act="tab" data-v="'+n[0]+'"'+(S.tab===n[0]?' aria-current="page"':"")+'><svg viewBox="0 0 24 24" aria-hidden="true">'+n[2]+'</svg>'+n[1]+'</button>').join("")+'</div></nav>'}
+function navHtml(){return '<nav class="nav" aria-label="التنقل"><div class="nav-in">'+NAV.map(n=>'<button class="nb" data-act="tab" data-v="'+n[0]+'"'+(S.tab===n[0]?' aria-current="page"':"")+'><svg viewBox="0 0 24 24" aria-hidden="true">'+n[2]+'</svg>'+n[1]+(n[0]==="coach"&&S.msgNew?' <b style="color:var(--bad)">●</b>':"")+'</button>').join("")+'</div></nav>'}
 function mrow(label,v,t,col){const pct=Math.min(100,t?v/t*100:0);return '<div class="mrow"><span>'+label+'</span><div class="bar" style="--c:var('+col+')"><i style="width:'+pct.toFixed(0)+'%"></i></div><span class="num">'+r0(v)+'<small>/'+t+'</small></span></div>'}
 function ring(v,t){const R=52,C=2*Math.PI*R,pct=Math.min(1,t?v/t:0),left=t-v,over=v>t*1.05;
   return '<div class="ring"><svg viewBox="0 0 130 130" aria-hidden="true"><circle cx="65" cy="65" r="'+R+'" class="rt"/><circle cx="65" cy="65" r="'+R+'" class="rp'+(over?" over":"")+'" stroke-dasharray="'+(C*pct).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 65 65)"/></svg><div class="rc"><b>'+Math.abs(r0(left))+'</b><span>'+(left>=0?"سعر باقي":"سعر زيادة")+'</span></div></div>'}
@@ -524,6 +542,7 @@ function waReportText(){
 function viewCoach(){
   const P=S.profile,mc=P.myCoach,gpt=true;
   let h='<header class="top"><div class="min0"><h1>الكوتش</h1><p class="sub">'+(mc?'كوتشك الخاص: '+esc(mc.n)+'. أو اسأل ChatGPT.':'بنجهّز لك البرومبت ببياناتك، وإنت بتبعته لـ ChatGPT بحسابك المجاني.')+'</p></div></header>';
+  if(mc&&mc.u&&P.share){S.msgNew=0;h+=card('<h2>رسايل مع كوتشي ('+esc(mc.n)+')</h2>'+bubbles(S.msgs||[],"client")+'<textarea class="inp" id="msgIn" data-in="msgd" placeholder="اكتب رسالة لكوتشك">'+esc(S.ui.msgDraft||"")+'</textarea><div class="row"><button class="btn" data-act="msgSend">ابعت</button></div>')}
   h+=card('<h2>اسأل الكوتش</h2><label class="lb" for="chatIn">سؤالك</label><textarea class="inp" id="chatIn" data-in="chat" placeholder="مثلا: أنا جعان بالليل، آكل إيه؟">'+esc(S.ui.draft)+'</textarea>'
     +'<div class="row"><button class="btn" data-act="askGpt">اسأل ChatGPT</button>'+(mc?'<button class="btn" data-act="waSend" data-v="ask">ابعت لكوتشي ('+esc(mc.n)+') على واتساب</button>':'')+'</div>'
     +(mc?'<div class="row"><button class="btn ghost" data-act="waSend" data-v="report">ابعت تقرير اليوم لكوتشي على واتساب</button></div>':'<p class="hint">عندك كوتش خاص؟ اربطه من التقدم ← "كوتشي الخاص" وهيظهرلك زرار واتساب.</p>')
@@ -549,9 +568,11 @@ function startClients(){
   S.unsubs.push(S.fb.db.collection("shares").where("coachUid","==",S.user.uid).onSnapshot(q=>{
     S.clients=q.docs.map(d=>Object.assign({id:d.id},d.data()));S.clientsErr=0;
     const names=[];
+    S.cMsg=S.cMsg||{};const msgNames=[];
+    S.clients.forEach(c=>{const pm=S.cMsg[c.id];if(!firstSnap&&c.lastMsg&&c.lastMsg.at>(pm||0))msgNames.push((c.name||c.email||"مشترك"));S.cMsg[c.id]=c.lastMsg?c.lastMsg.at:0});
     S.clients.forEach(c=>{const prev=S.cSeen[c.id];if(!firstSnap&&c.updated&&(!prev||c.updated>prev)&&S.mode!=="coach"){S.cNew[c.id]=1;names.push(c.name||c.email||"مشترك")}else if(!firstSnap&&c.updated&&(!prev||c.updated>prev)){names.push(c.name||c.email||"مشترك")}S.cSeen[c.id]=c.updated||0});
     firstSnap=false;
-    if(names.length)toast(names.join("، ")+" بعتلك تحديث");
+    if(msgNames.length)toast(msgNames.join("، ")+" بعتلك رسالة");else if(names.length)toast(names.join("، ")+" بعتلك تحديث");
     softRender()},()=>{S.clientsErr=1;render()}));
 }
 function viewClients(){
@@ -564,12 +585,12 @@ function viewClients(){
   const logged=cl.filter(td).length;
   h+=card('<h2>النهاردة</h2><p class="sub">'+(cl.length?logged+' من '+cl.length+' سجّلوا النهاردة.':'لسه محدش اتربط بيك.')+'</p>');
   cl.forEach(c=>{
-    const t=td(c),ds=c.days||[],n=ds.length,avgK=n?r0(ds.reduce((a,x)=>a+x.k,0)/n):0,avgP=n?r0(ds.reduce((a,x)=>a+x.p,0)/n):0,open=S.ui.open&&S.ui.open[c.id];
+    const rd=+(function(){try{return localStorage.getItem('kochi-rd-'+c.id)||0}catch(e){return 0}})(),unread=!!(c.lastMsg&&c.lastMsg.at>rd&&S.thId!==c.id),t=td(c),ds=c.days||[],n=ds.length,avgK=n?r0(ds.reduce((a,x)=>a+x.k,0)/n):0,avgP=n?r0(ds.reduce((a,x)=>a+x.p,0)/n):0,open=S.ui.open&&S.ui.open[c.id];
     h+=card('<div class="row" style="justify-content:space-between;align-items:center"><h2>'+esc(c.name||c.email||"مشترك")+'</h2><span class="tag" style="background:'+(t?'var(--accent-soft)':'var(--surface2)')+'">'+(t?'سجّل النهاردة':'لسه مسجلش')+'</span></div>'
       +'<p class="sub">'+esc(c.email||"")+' | '+esc((GOALS[c.goal]||GOALS.cut).t)+' | الوزن '+esc(c.w||"-")+' كجم</p>'
       +(t?'<div class="grid2"><div>سعرات: <b>'+t.k+'</b> / '+c.tk+'</div><div>بروتين: <b>'+t.p+'</b> / '+c.tp+'</div><div>مياه: <b>'+t.w+'</b> / '+c.wg+'</div><div>نوم: <b>'+(t.s==null?"-":t.s)+'</b> | خطوات '+t.st+'</div><div>تمرين: <b>'+(t.t?(TT[t.t]||t.t):"لسه")+'</b></div></div>':'<p class="hint">مفيش تسجيل لليوم ده لسه.</p>')
       +'<p class="hint">متوسط آخر '+n+' أيام مسجلة: '+avgK+' سعر | '+avgP+' جم بروتين. آخر تحديث: '+esc(new Date(c.updated||0).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</p>'
-      +'<button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button>'
+      +(unread?'<p class="msg">رسالة جديدة: '+esc(c.lastMsg.text)+'</p>':'')+'<div class="row"><button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button><button class="btn sm" data-act="thOpen" data-v="'+esc(c.id)+'">'+(S.thId===c.id?"إخفاء الرسايل":"رسايل")+(unread?" (جديد)":"")+'</button></div>'+(S.thId===c.id?'<div>'+bubbles(S.thMsgs||[],"coach")+'<textarea class="inp" id="thIn" data-in="thd" placeholder="اكتب رد للعميل">'+esc(S.ui.thDraft||"")+'</textarea><div class="row"><button class="btn sm" data-act="thSend" data-v="'+esc(c.id)+'">ابعت</button></div></div>':"")
       +(open?'<div class="scroll"><table class="tbl"><thead><tr><th>اليوم</th><th>سعرات</th><th>بروتين</th><th>مياه</th><th>نوم</th><th>تمرين</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+esc(x.d.slice(5))+'</td><td>'+x.k+'</td><td>'+x.p+'</td><td>'+x.w+'</td><td>'+(x.s==null?"-":x.s)+'</td><td>'+(x.t?esc(TT[x.t]||x.t):"-")+'</td></tr>').join("")+'</tbody></table></div>':""));
   });
   const link=ac.u?location.origin+location.pathname+"?coach="+coachCode(ac.n,ac.p,ac.u):"";
@@ -975,10 +996,16 @@ function act(name,t){
     case"coachMode":S.profile.coachMode=v;saveProfile();render();break;
     case"coachLink":{const o=parseCoachCode(S.ui.cl);if(!o){toast("الكود مش صح");break}S.ui.cl="";askCoach(o);render();break}
     case"mode":S.mode=v;try{localStorage.setItem("kochi-mode",v)}catch(e){}if(v==="coach"){S.rmOpen=null;drawRem();if(S.flow&&S.flow.k==="wake"){S.flow=null;drawFlow()}S.cNew={}}render(false);window.scrollTo(0,0);break;
+    case"msgSend":{const mc=S.profile.myCoach;sendMsg("client",S.user.uid,S.ui.msgDraft).then(ok=>{if(ok){S.ui.msgDraft="";render()}});break}
+    case"thOpen":{if(S.thId===v){if(S.thUn){S.thUn();S.thUn=null}S.thId=null;render();break}
+      if(S.thUn){S.thUn();S.thUn=null}S.thId=v;S.thMsgs=[];
+      const c=(S.clients||[]).find(x=>x.id===v);try{localStorage.setItem("kochi-rd-"+v,String((c&&c.lastMsg&&c.lastMsg.at)||Date.now()))}catch(e){}
+      S.thUn=msgCol(v).orderBy("at","desc").limit(50).onSnapshot(q=>{S.thMsgs=mapMsgs(q);softRender()},()=>{});render();break}
+    case"thSend":{sendMsg("coach",v,S.ui.thDraft).then(ok=>{if(ok){S.ui.thDraft="";render()}});break}
     case"cOpen":S.ui.open=S.ui.open||{};S.ui.open[v]=!S.ui.open[v];render();break;
-    case"consentYes":{const o=S.ui.consent;if(o){S.profile.myCoach=o;S.profile.coachMode="both";S.profile.share=true;S.ui.consent=null;saveProfile();toast("اتربطت بالكوتش "+o.n)}render();break}
+    case"consentYes":{const o=S.ui.consent;if(o){S.profile.myCoach=o;S.profile.coachMode="both";S.profile.share=true;S.ui.consent=null;saveProfile();startMsgs();toast("اتربطت بالكوتش "+o.n)}render();break}
     case"consentNo":S.ui.consent=null;render();break
-    case"coachUnlink":S.profile.myCoach=null;S.profile.coachMode="gpt";S.profile.share=false;if(S.fb&&S.user)S.fb.db.doc("shares/"+S.user.uid).delete().catch(()=>{});saveProfile();render();break;
+    case"coachUnlink":stopMsgs();S.profile.myCoach=null;S.profile.coachMode="gpt";S.profile.share=false;if(S.fb&&S.user)S.fb.db.doc("shares/"+S.user.uid).delete().catch(()=>{});saveProfile();render();break;
     case"coachSave":{const u=S.ui.cs||{},n=(u.n!=null?u.n:S.profile.name||"").trim(),p=waNum(u.p);if(!n){toast("اكتب اسمك");break}if(!p){toast("رقم الواتساب مش صح");break}S.profile.asCoach={n:n.slice(0,40),p:p,u:S.user?S.user.uid:""};saveProfile();startClients();render();break}
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
     case"coachCopy":copyText(location.origin+location.pathname+"?coach="+coachCode(S.profile.asCoach.n,S.profile.asCoach.p,S.profile.asCoach.u)).then(ok=>toast(ok?"اتنسخ الرابط":"انسخه من الخانة يدوي"));break;
@@ -1083,6 +1110,8 @@ function onInput(t,commit){
     case"offq":if(sh)sh.offq=t.value;break;
     case"cfi":S.ui.cf=S.ui.cf||{};S.ui.cf[t.dataset.k]=t.value;break;
     case"bfav":if(sh&&sh.bl)sh.bl.fav=t.checked;break;
+    case"msgd":S.ui.msgDraft=t.value;break;
+    case"thd":S.ui.thDraft=t.value;break;
     case"cn":case"ck":case"cp":case"cc":case"cf":if(sh)sh[k]=t.value;break;
     case"bw":case"bwaist":case"bchest":case"barm":S.ui[k]=t.value;break;
     case"chat":S.ui.draft=t.value;break;
@@ -1139,7 +1168,7 @@ async function auReset(){
   try{await S.fb.auth.sendPasswordResetEmail(a.email.trim());a.msg="بعتنالك لينك تغيير الباسورد على الإيميل.";}catch(e){a.msg=authErr(e&&e.code)}
   render();
 }
-function stopListeners(){(S.unsubs||[]).forEach(f=>{try{f()}catch(e){}});S.unsubs=[];S.clientsOn=0;S.clients=[]}
+function stopListeners(){(S.unsubs||[]).forEach(f=>{try{f()}catch(e){}});S.unsubs=[];S.clientsOn=0;S.clients=[];S.msgsOn=0;S.msgs=[];S.msgUn=null;S.thUn=null;S.thId=null}
 function endUser(){
   stopListeners();S.user=null;S.base=null;S.auth="out";S.au={mode:"login",email:S.au.email||"",pw:"",msg:"",busy:0};S.profile=clone(DEF);S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.ob=null;S.flow=null;S.sheet=null;S.rmOpen=null;S.loading=true;S.tab="today";S.date=todayStr();
   drawSheet();drawFlow();drawRem();render();
@@ -1149,7 +1178,7 @@ function startUser(u){
   S.user=u;S.auth="in";S.loading=true;S.days={};S.body={};S.photos=[];S.photosLoaded=false;S.profile=clone(DEF);S.ob=null;
   S.base=S.fb.db.doc("users/"+u.uid);
   const ready={p:0,d:0};let first=true;
-  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.profile.asCoach)startClients();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
+  const done=()=>{if(first){first=false;S.loading=false;try{const P=S.profile,now=Date.now();if(P.asCoach&&!P.asCoach.u&&u.uid){P.asCoach.u=u.uid;saveProfile()}if(P.email!==(u.email||"")||!P.created||now-(P.seen||0)>6*36e5){P.email=u.email||"";P.created=P.created||now;P.seen=now;saveProfile()}}catch(e){}if(S.profile.asCoach)startClients();startMsgs();render();setTimeout(checkWake,400);setTimeout(checkReminders,900)}};
   const chk=()=>{if(ready.p&&ready.d)done()};
   setTimeout(done,7000);
   S.unsubs.push(S.base.onSnapshot(sn=>{
