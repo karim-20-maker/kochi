@@ -444,3 +444,8 @@ html[data-theme="dark"] .slc{background:var(--surface)}
 }
 .viewer.tall{height:92vh;max-height:92vh;max-width:560px}
 .sq,.fgrid{}
+
+.xclose{position:sticky;top:0;z-index:5;align-self:flex-start;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--accent-soft);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);margin-bottom:-4px}
+.viewer{max-height:calc(100dvh - 120px)}
+.viewer.tall{height:auto;max-height:calc(100dvh - 120px)}
+.ov.mid{padding-bottom:max(16px,env(safe-area-inset-bottom))}

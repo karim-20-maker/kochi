@@ -1191,7 +1191,7 @@ function drawFlow(){
   else if(f.k==="doc")b=docHtml(f.id);
   else{const sl=S.profile.sl||{};b='<h2 id="flT">صحيت؟</h2><p class="sub">'+(sl.at?'دخلت تنام الساعة '+esc(hhmm(new Date(sl.at)))+'. ':'')+'لو صحيت هعرض لك خطة اليوم وأرجّع التنبيهات.</p><div class="row"><button class="btn" data-act="wakeYes">اه صحيت</button><button class="btn ghost" data-act="wakeNo">لا، لسه نايم</button></div>'}
   const pv=h.querySelector(".viewer"),ps=pv?pv.scrollTop:0,tall=f.k==="doc"&&(f.id==="i"||f.id==="f");
-  h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer'+(tall?" tall":"")+'" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
+  h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer'+(tall?" tall":"")+'" role="dialog" aria-modal="true" aria-labelledby="flT">'+(f.k==="wake"?"":'<button class="xclose" data-act="flowClose" aria-label="إغلاق">✕</button>')+b+'</div></div>';
   const v=h.querySelector(".viewer");if(v)v.scrollTop=(tall&&ps)?ps:0;
 }
 function checkWake(){
