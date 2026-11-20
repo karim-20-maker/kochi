@@ -347,6 +347,7 @@ function viewToday(){
   const mins=day.mins||0,burn=(day.tType&&day.tType!=="rest"&&mins>0)?r0((MET[day.tType]||5)*curWeight()*mins/60):0;
   const tmode=day.tType==="rest"?"rest":(day.tType||S.ui.tOpen===date)?"train":"";
   const chip=t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>';
+  const rstB=S.ui.rst===S.date?'<div class="plan"><span class="pn">تمسح كل اللي اتسجل في اليوم ده؟</span><p class="sub">الأكل والمياه والنوم والخطوات والتمرين. مش هترجع تاني.</p><div class="row"><button class="btn sm" data-act="rstYes">اه، امسح</button><button class="btn ghost sm" data-act="rstNo">لا</button></div></div>':'<button class="btn ghost sm" data-act="rstAsk">ريسيت اليوم (لو سجلت بالغلط)</button>';
   const trSeg='<div class="seg2"><button class="chip'+((!tmode&&sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="train")+'" data-act="tmode" data-v="train">تمرين</button><button class="chip'+((!tmode&&!sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="rest")+'" data-act="tmode" data-v="rest">راحة</button></div>';
   const trTypes=(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ تمارين تانية")+'</button>':"")+'</div>'
     +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"");
@@ -419,10 +420,10 @@ function viewToday(){
       +'<div class="htiles">'+tile("food","🍽️","الأكل",eaten+"/"+tot5,r0(tot.k)+" سعر اتاكلت","#16a34a")+tile("train","🏋️","التمرين",tmode==="rest"?"راحة":(day.tType?"✓":"–"),esc(trLabel),"#8b5cf6")
       +stp("مياه","water",1,day.water||0,"من "+WG()+" كوباية")+stp("نوم","sleep",.5,day.sleep==null?"–":day.sleep,"ساعات (7 إلى 8)")
       +'<div class="htile st sm"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>'
-      +'<div class="hubpanel">'+panel+'</div><div class="hubfoot">'+askB+nightB+'</div></div>';
+      +'<div class="hubpanel">'+panel+'</div><div class="hubfoot">'+askB+nightB+rstB+'</div></div>';
     return h;
   }
-  h+=sumCard+remainH+trioH+trainCard+'<h2 style="margin-top:4px">الأكل والمشروبات</h2>'+slotsH.map(x=>x.html).join("")+askB+nightB;
+  h+=sumCard+remainH+trioH+trainCard+'<h2 style="margin-top:4px">الأكل والمشروبات</h2>'+slotsH.map(x=>x.html).join("")+askB+nightB+rstB;
   return h;
 }
 
@@ -1355,7 +1356,13 @@ function act(name,t){
     case"fsCfg":S.fs.mode=null;S.fs.idx={};drawFlow();break;
     case"fsSwap":S.fs.idx[v]=(S.fs.idx[v]||0)+1;drawFlow();break;
     case"fsEat":fsLog(v);break;
-    case"fsEatAll":fsSlots().forEach(fsLog);break;
+    case"fsEatAll":{const sl=fsSlots(),B=S.fs.mode==="bud"?Number(S.fs.budget)||0:0;
+      mutQuiet(todayStr(),d=>{d.meals=(d.meals||[]).filter(m=>sl.indexOf(m.slot)<0)});
+      sl.forEach(s=>{const o=fsCard(s,B).o;mutQuiet(todayStr(),d=>{d.meals.push({id:uid(),slot:s,name:KPL(o.m[1]),q:o.items.map(x=>KP.itemText(x)).join("، "),k:Math.round(o.k),p:Math.round(o.p*10)/10,c:Math.round(o.c*10)/10,f:Math.round(o.f*10)/10})})});
+      render();toast(remToast(todayStr()));break}
+    case"rstAsk":S.ui.rst=S.date;render();break;
+    case"rstNo":S.ui.rst=null;render();break;
+    case"rstYes":{S.ui.rst=null;mut(S.date,d=>{d.meals=[];d.water=0;d.sleep=null;d.steps=0;d.tType=null;d.trained=false;d.mins=0;d.cardio=false});toast("اتمسح اليوم");break}
     case"hackEat":{const x=KP.H[Number(v)];addMeal(todayStr(),"s",{name:KPL(x.n),q:"",k:x.k,p:x.p,c:x.c,f:x.f});break}
     case"flowClose":S.flow=null;drawFlow();break;
     case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,note=(S.ui.msgDraft||"").trim(),txt=(note?note+"\n\n":"")+(S.ui.flRep===false?"":waReportText(d));
