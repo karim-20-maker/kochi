@@ -299,6 +299,7 @@ const NAV=[["today","النهاردة",'<rect x="4" y="5" width="16" height="15"
  ["food","الأكل",'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'],
  ["train","التمرين",'<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>'],
  ["prog","التقدم",'<path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6"/>'],
+ ["info","معلومات",'<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8h.01"/>'],
  ["coach","الكوتش",'<path d="M5 6h14a1 1 0 011 1v8a1 1 0 01-1 1h-7l-4 3v-3H5a1 1 0 01-1-1V7a1 1 0 011-1z"/>']];
 function navHtml(){return '<nav class="nav" aria-label="التنقل"><div class="nav-in">'+NAV.map(n=>'<button class="nb" data-act="tab" data-v="'+n[0]+'"'+(S.tab===n[0]?' aria-current="page"':"")+'><svg viewBox="0 0 24 24" aria-hidden="true">'+n[2]+'</svg>'+n[1]+(n[0]==="coach"&&S.msgNew?' <b style="color:var(--bad)">●</b>':"")+'</button>').join("")+'</div></nav>'}
 function mrow(label,v,t,col){const pct=Math.min(100,t?v/t*100:0);return '<div class="mrow"><span>'+label+'</span><div class="bar" style="--c:var('+col+')"><i style="width:'+pct.toFixed(0)+'%"></i></div><span class="num">'+r0(v)+'<small>/'+t+'</small></span></div>'}
@@ -527,38 +528,54 @@ function fsHtml(){
   return b+'<div class="row"><button class="btn ghost sm" data-act="fsCfg">غيّر الميزانية</button>'+cl+'</div>'}
 function fsLog(slot){const B=S.fs.mode==="bud"?Number(S.fs.budget)||0:0,o=fsCard(slot,B).o;
   addMeal(todayStr(),slot,{name:KPL(o.m[1]),q:o.items.map(x=>KP.itemText(x)).join("، "),k:Math.round(o.k),p:Math.round(o.p*10)/10,c:Math.round(o.c*10)/10,f:Math.round(o.f*10)/10})}
-function pricesCard(){
-  let h='<h2>أسعار السوق</h2><p class="sub">أسعار تقريبية للتجزئة في مصر ('+esc(KPL(KP.DATE))+') من نشرات الأسعار. بتختلف حسب المنطقة والمحل، والعلامة * معناها تقدير مش سعر منشور.</p>';
+function fcard(emo,col,title,sub,inner){return '<section class="card fcd" style="--c:'+col+'"><div class="fch"><span class="fce" aria-hidden="true">'+emo+'</span><div class="min0"><h2>'+title+'</h2>'+(sub?'<p class="sub">'+sub+'</p>':"")+'</div></div>'+inner+'</section>'}
+function hackSlide(i){const x=KP.H[i],a=KA.HA[i]||["🍽️","#e5e7eb","#9ca3af","s"];
+  return '<button class="slc" data-act="docOpen" data-v="h'+i+'" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="sla" aria-hidden="true"><span class="sle">'+a[0]+'</span><span class="slk num">'+x.k+' سعر</span></span><b class="slt">'+esc(KPL(x.n))+'</b><span class="slm num">'+x.p+' بروتين · '+x.c+' كارب</span></button>'}
+function slider(items){return '<div class="slider" role="list">'+items.join("")+'</div>'}
+function hackDoc(i){const x=KP.H[i],a=KA.HA[i]||["🍽️","#e5e7eb","#9ca3af"];
+  return '<div class="dh" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="dhe" aria-hidden="true">'+a[0]+'</span></div><h2 id="flT">'+esc(KPL(x.n))+'</h2>'
+    +'<p class="sub">الوقت: '+esc(KPL(x.t))+'. للحصة: '+x.k+' سعر · '+x.p+' بروتين · '+x.c+' كارب · '+x.f+' دهون (تقريبي)</p><p class="lb">المكونات:</p><ul class="pl">'+x.i.map(q=>'<li>'+esc(KPL(q))+'</li>').join("")+'</ul><p class="lb">الطريقة:</p><ol class="pl">'+x.s.map(q=>'<li>'+esc(KPL(q))+'</li>').join("")+'</ol>'
+    +(x.nt?'<p class="hint">'+esc(KPL(x.nt))+'</p>':'')+'<div class="row"><button class="btn sm" data-act="hackEat" data-v="'+i+'">سجّلها سناك</button><button class="btn ghost sm" data-act="flowClose">إغلاق</button></div>'}
+function sweetSlide(i){const x=KP.SWT[i];return '<button class="slc prod" data-act="docOpen" data-v="w'+i+'"><span class="sla pr" aria-hidden="true">'+KA.PROD[KA.SWA[i]||"tips"]+'</span><b class="slt">'+esc(KPL(x.n))+'</b></button>'}
+function sweetDoc(i){const x=KP.SWT[i];return '<div class="dh prd">'+KA.PROD[KA.SWA[i]||"tips"]+'</div><h2 id="flT">'+esc(KPL(x.n))+'</h2><p>'+esc(KPL(x.b))+'</p><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
+function tipSlide(i){const x=KA.TIPS[i];return '<button class="slc" data-act="docOpen" data-v="t'+i+'" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="sla" aria-hidden="true"><span class="sle">'+x.e+'</span></span><b class="slt">'+esc(KA.L(x.n))+'</b></button>'}
+function tipDoc(i){const x=KA.TIPS[i];return '<div class="dh" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="dhe" aria-hidden="true">'+x.e+'</span></div><h2 id="flT">'+esc(KA.L(x.n))+'</h2><ol class="pl">'+x.p.map(q=>'<li>'+esc(KA.L(q))+'</li>').join("")+'</ol><p class="hint">كلام عام ومش بديل لدكتور أو أخصائي.</p><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
+function docHtml(k){const n=Number(k.slice(1));return k[0]==="h"?hackDoc(n):k[0]==="w"?sweetDoc(n):tipDoc(n)}
+function viewFood(){
+  const SL={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
+  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
+  h+='<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
+    +'<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار ومحليات وصوصات</small></span></button></div>';
+  const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
+  h+=fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw));
+  let fv="";
+  Object.keys(SL).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{fv+='<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SL[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>'})});
+  h+=fcard('⭐','#eab308','وجباتي المفضلة','',''+'<p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
+  const cf=(S.profile.cf||[]).map(c=>'<div class="ent"><div class="nm"><b>'+esc(c.n)+'</b><span>'+r0(c.k)+' سعر · '+r0(c.p)+' بروتين · '+r0(c.c)+' كارب · '+r0(c.f)+' دهون (لكل 100 جم)</span></div><button class="x" data-act="cfDel" data-v="'+esc(c.id)+'" aria-label="مسح">×</button></div>').join("");
+  const u=S.ui.cf||{},ci=(k,l,ph)=>'<div><label class="lb" for="cf_'+k+'">'+l+'</label><input class="inp" id="cf_'+k+'" data-in="cfi" data-k="'+k+'" '+(k==="n"?'':'type="number" inputmode="decimal" ')+'placeholder="'+(ph||"")+'" value="'+esc(u[k]||"")+'"></div>';
+  h+=fcard('🧾','#0ea5e9','أصنافي','',''+'<p class="sub">أضف أي منتج من الباكيدج بقيمه لكل 100 جم، وهيظهر في بحث الأصناف تحت "أصنافي". كمان تقدر تدوّر على منتجات معبأة من تبويب "منتجات" وإنت بتضيف أكل.</p>'+cf
+    +'<div class="grid2">'+ci("n","اسم المنتج","مثلا: بسكويت دايجستف")+ci("k","سعرات /100جم")+ci("p","بروتين")+ci("c","كارب")+ci("f","دهون")+ci("u","وزن الحصة (جم، اختياري)")+'</div><button class="btn" data-act="cfAdd">أضف الصنف</button>');
+  return h;
+}
+function pricesCard2(){
+  const E=["🥩","🍗","🐟","🥛","🍚","🥬","🥜"];
+  let b="";
   KP.CATS.forEach((c,ci)=>{
     const rows=Object.keys(KP.P).map(k=>KP.P[k]).filter(x=>x.cat===ci).map(x=>'<li>'+esc(KPL(x.n))+': <b class="num">'+r0(x.kg)+'</b> جنيه/كجم'+(x.e?' *':'')+(x.u?' (حوالي '+r0(x.kg*x.ug/1000*10)/10+' جنيه لل'+esc(KPL(x.u))+')':'')+'</li>').join("")
       +KP.REF.filter(r=>r[0]===ci).map(r=>'<li>'+esc(KPL([r[1],r[2]]))+': <b class="num">'+esc(KPL([r[3],r[4]]))+'</b></li>').join("");
-    h+=det("pr"+ci,esc(KPL(c)),'<ul class="pl">'+rows+'</ul>')});
-  return h}
-function hackCard(i){const x=KP.H[i];
-  return det("hk"+i,esc(KPL(x.n))+' <span class="sub">· '+x.k+' سعر · '+x.p+' بروتين</span>',
-    '<p class="sub">الوقت: '+esc(KPL(x.t))+'. للحصة: '+x.k+' سعر · '+x.p+' بروتين · '+x.c+' كارب · '+x.f+' دهون (تقريبي)</p><p class="lb">المكونات:</p><ul class="pl">'+x.i.map(a=>'<li>'+esc(KPL(a))+'</li>').join("")+'</ul><p class="lb">الطريقة:</p><ol class="pl">'+x.s.map(a=>'<li>'+esc(KPL(a))+'</li>').join("")+'</ol>'
-    +(x.nt?'<p class="hint">'+esc(KPL(x.nt))+'</p>':'')+'<div class="row"><button class="btn sm" data-act="hackEat" data-v="'+i+'">سجّلها سناك</button></div>')}
-function sweetCard(){return '<h2>دليل المحليات</h2><p class="sub">إيه اللي بيحلّي من غير سكر، وإزاي تستخدمه.</p>'+KP.SWT.map((x,i)=>det("sw"+i,esc(KPL(x.n)),'<p>'+esc(KPL(x.b))+'</p>')).join("")}
-function viewFood(){
-  const SL={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
-  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">وجباتك المفضلة وأصنافك الخاصة ونصايح سريعة.</p></div></header>';
-  h+=card('<h2>اقترحلي أكل</h2><p class="sub">وجبة أو يوم كامل، بميزانية أو فري بادجت، بالسعرات والبروتين والتكلفة على سوق مصر.</p><button class="btn big" data-act="fsOpen">اقترحلي</button>');
-  h+=card('<h2>هاكرز الدايت</h2><p class="sub">وصفات دايت حلوة بسعرات قليلة: سحلب وجيلي وجيلاتي وغيرهم.</p>'+KP.H.map((_,i)=>hackCard(i)).join(""));
-  h+=card(sweetCard());
-  h+=card(pricesCard());
-  let fv="";
-  Object.keys(SL).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{fv+='<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SL[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>'})});
-  h+=card('<h2>وجباتي المفضلة</h2><p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
-  const cf=(S.profile.cf||[]).map(c=>'<div class="ent"><div class="nm"><b>'+esc(c.n)+'</b><span>'+r0(c.k)+' سعر · '+r0(c.p)+' بروتين · '+r0(c.c)+' كارب · '+r0(c.f)+' دهون (لكل 100 جم)</span></div><button class="x" data-act="cfDel" data-v="'+esc(c.id)+'" aria-label="مسح">×</button></div>').join("");
-  const u=S.ui.cf||{},ci=(k,l,ph)=>'<div><label class="lb" for="cf_'+k+'">'+l+'</label><input class="inp" id="cf_'+k+'" data-in="cfi" data-k="'+k+'" '+(k==="n"?'':'type="number" inputmode="decimal" ')+'placeholder="'+(ph||"")+'" value="'+esc(u[k]||"")+'"></div>';
-  h+=card('<h2>أصنافي</h2><p class="sub">أضف أي منتج من الباكيدج بقيمه لكل 100 جم، وهيظهر في بحث الأصناف تحت "أصنافي". كمان تقدر تدوّر على منتجات معبأة من تبويب "منتجات" وإنت بتضيف أكل.</p>'+cf
-    +'<div class="grid2">'+ci("n","اسم المنتج","مثلا: بسكويت دايجستف")+ci("k","سعرات /100جم")+ci("p","بروتين")+ci("c","كارب")+ci("f","دهون")+ci("u","وزن الحصة (جم، اختياري)")+'</div><button class="btn" data-act="cfAdd">أضف الصنف</button>');
-  h+=card('<h2>صوصات لايت</h2>'
+    b+=det("pr"+ci,'<span class="pe">'+E[ci]+'</span> '+esc(KPL(c)),'<ul class="pl">'+rows+'</ul>')});
+  return fcard("💰","#16a34a","أسعار السوق","أسعار تقريبية للتجزئة في مصر ("+esc(KPL(KP.DATE))+") من نشرات الأسعار. بتختلف حسب المنطقة والمحل، والعلامة * معناها تقدير مش سعر منشور.",b)}
+function viewInfo(){
+  let h='<header class="top"><div class="min0"><h1>معلومات</h1><p class="sub">نصايح وأسعار ومحليات وصوصات في مكان واحد.</p></div></header>';
+  h+=fcard("💡","#f59e0b","نصايح عالماشي","اسحب واختار الموضوع اللي محتاجه.",slider(KA.TIPS.map((_,i)=>tipSlide(i))));
+  h+=fcard("🍬","#0ea5e9","دليل المحليات","إيه اللي بيحلّي من غير سكر، وإزاي تستخدمه.",slider(KP.SWT.map((_,i)=>sweetSlide(i))));
+  h+=pricesCard2();
+  h+=fcard('🥣','#16a34a','صوصات لايت','',''
     +det("s1","صوص ثوم وزبادي (45 سعر/100 جم)","<p>200 جم زبادي يوناني + 2 فص ثوم مهروس + عصير نص ليمونة + ملح ونعناع أو شبت. يتحط على الفراخ والكفتة والسلطة.</p>")
     +det("s2","صوص خردل وليمون","<p>معلقة خردل + عصير ليمونة + معلقة زيت زيتون + معلقة ميه + ثوم وملح. حوالي 35 سعر للمعلقة.</p>")
     +det("s3","صوص طماطم سريع (40 سعر/100 جم)","<p>4 طماطم مبشورة + ثوم + معلقة صغيرة زيت + ملح وأوريجانو، تتسبك 15 دقيقة. من غير سكر.</p>")
     +det("s4","تتبيلة فراخ","<p>ثوم + ليمون + بابريكا + كمون + معلقة زبادي + ملح. ساعتين في التلاجة على الأقل.</p><p class='hint'>عند شراء الجاهز: اقرا الملصق، وسكر أقل من 5 جم/100 جم أحسن.</p>"));
-  h+=card('<h2>الأكل برة</h2>'+det("t1","قواعد سريعة","<ul class='pl'><li>ابدأ بالبروتين، وبعدين الخضار، والنشويات في الآخر.</li><li>نص طبق الرز أو المكرونة، ومن غير مشروب غازي.</li><li>متجوّعش نفسك قبل الأكل برة، ده بيخليك تاكل أكتر.</li><li>يوم الأكل برة مش يوم غش. سجّله تقديري وكمّل طبيعي.</li></ul>"));
+  h+=fcard('🍔','#f97316','الأكل برة','',det("t1","قواعد سريعة","<ul class='pl'><li>ابدأ بالبروتين، وبعدين الخضار، والنشويات في الآخر.</li><li>نص طبق الرز أو المكرونة، ومن غير مشروب غازي.</li><li>متجوّعش نفسك قبل الأكل برة، ده بيخليك تاكل أكتر.</li><li>يوم الأكل برة مش يوم غش. سجّله تقديري وكمّل طبيعي.</li></ul>"));
   return h;
 }
 
@@ -1159,6 +1176,7 @@ function drawFlow(){
   else if(f.k==="brief")b=briefHtml(f.date,f.slept);
   else if(f.k==="prompt")b=promptHtml(f);
   else if(f.k==="sug")b=fsHtml();
+  else if(f.k==="doc")b=docHtml(f.id);
   else{const sl=S.profile.sl||{};b='<h2 id="flT">صحيت؟</h2><p class="sub">'+(sl.at?'دخلت تنام الساعة '+esc(hhmm(new Date(sl.at)))+'. ':'')+'لو صحيت هعرض لك خطة اليوم وأرجّع التنبيهات.</p><div class="row"><button class="btn" data-act="wakeYes">اه صحيت</button><button class="btn ghost" data-act="wakeNo">لا، لسه نايم</button></div>'}
   h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
   const v=h.querySelector(".viewer");if(v)v.scrollTop=0;
@@ -1348,6 +1366,7 @@ function act(name,t){
       mutQuiet(d,x=>{x.closed=true;x.sleepAt=hhmm(n)});
       S.profile.sl={asleep:true,day:d,at:n.getTime()};saveProfile();
       S.rmOpen=null;drawRem();S.wakeAsked=true;S.flow={k:"report",date:d};drawFlow();render();break}
+    case"docOpen":S.flow={k:"doc",id:v};drawFlow();break;
     case"fsOpen":S.fs={idx:{}};S.flow={k:"sug"};drawFlow();break;
     case"fsScope":S.fs.scope=v;S.fs.slot=null;S.fs.mode=null;drawFlow();break;
     case"fsSlot":S.fs.slot=v;drawFlow();break;
@@ -1365,7 +1384,7 @@ function act(name,t){
     case"rstAsk":S.ui.rst=S.date;render();break;
     case"rstNo":S.ui.rst=null;render();break;
     case"rstYes":{S.ui.rst=null;mut(S.date,d=>{d.meals=[];d.water=0;d.sleep=null;d.steps=0;d.tType=null;d.trained=false;d.mins=0;d.cardio=false});toast("اتمسح اليوم");break}
-    case"hackEat":{const x=KP.H[Number(v)];addMeal(todayStr(),"s",{name:KPL(x.n),q:"",k:x.k,p:x.p,c:x.c,f:x.f});break}
+    case"hackEat":{const x=KP.H[Number(v)];addMeal(todayStr(),"s",{name:KPL(x.n),q:"",k:x.k,p:x.p,c:x.c,f:x.f});S.flow=null;drawFlow();break}
     case"flowClose":S.flow=null;drawFlow();break;
     case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,note=(S.ui.msgDraft||"").trim(),txt=(note?note+"\n\n":"")+(S.ui.flRep===false?"":waReportText(d));
       if(!txt.trim()){toast("اكتب رسالة أو سيب تفاصيل اليوم متعلّم");break}
@@ -1577,7 +1596,7 @@ function render(keep){
   else if(S.loading){body='<div class="card"><p class="sub">بجهّز بياناتك...</p></div>';nav=false}
   else if(!S.profile.onboarded||S.ob){body=obView();nav=false}
   else if(S.auth==="in"&&S.profile.asCoach&&S.mode==="coach"){body=modeBar()+viewClients();nav=false;wide=true}
-  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();wide=true;
+  else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,info:viewInfo,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();wide=true;
     if(S.auth==="local"&&S.tab==="today")body='<div class="card"><p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس. لتسجيل الدخول والتزامن، ضيف إعدادات Firebase.</p></div>'+body}
   if(body.indexOf('data-act="theme"')<0)body=utilBar()+body;
   $("#app").innerHTML='<main class="app'+(wide?' wide':'')+'">'+body+'</main>'+(nav?navHtml():"");
