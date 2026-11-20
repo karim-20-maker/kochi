@@ -539,21 +539,29 @@ function hackDoc(i){const x=KP.H[i],a=KA.HA[i]||["🍽️","#e5e7eb","#9ca3af"];
     +(x.nt?'<p class="hint">'+esc(KPL(x.nt))+'</p>':'')+'<div class="row"><button class="btn sm" data-act="hackEat" data-v="'+i+'">سجّلها سناك</button><button class="btn ghost sm" data-act="flowClose">إغلاق</button></div>'}
 function tipSlide(i){const x=KA.TIPS[i];return '<button class="slc" data-act="docOpen" data-v="t'+i+'" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="sla" aria-hidden="true"><span class="sle">'+x.e+'</span></span><b class="slt">'+esc(KA.L(x.n))+'</b></button>'}
 function tipDoc(i){const x=KA.TIPS[i];return '<div class="dh" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="dhe" aria-hidden="true">'+x.e+'</span></div><h2 id="flT">'+esc(KA.L(x.n))+'</h2><ol class="pl">'+x.p.map(q=>'<li>'+esc(KA.L(q))+'</li>').join("")+'</ol><p class="hint">كلام عام ومش بديل لدكتور أو أخصائي.</p><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
-function docHtml(k){const n=Number(k.slice(1));return k[0]==="h"?hackDoc(n):tipDoc(n)}
-function viewFood(){
-  const SL={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
-  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
-  h+='<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
-    +'<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button></div>';
-  const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
-  h+=fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw));
-  let fv="";
-  Object.keys(SL).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{fv+='<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SL[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>'})});
-  h+=fcard('⭐','#eab308','وجباتي المفضلة','',''+'<p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
+function docHtml(k){const n=Number(k.slice(1));return k==="i"?itemsDoc():k==="f"?favDoc():k[0]==="h"?hackDoc(n):tipDoc(n)}
+const SLF={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
+function favEnts(){const o=[];Object.keys(SLF).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{o.push('<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SLF[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>')})});return o}
+function favDoc(){const e=favEnts();return '<h2 id="flT">وجباتي المفضلة</h2><p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(e.join("")||'<p class="hint">لسه مفيش وجبات محفوظة.</p>')+'<button class="btn ghost" data-act="flowClose">إغلاق</button>'}
+function itemsDoc(){
   const cf=(S.profile.cf||[]).map(c=>'<div class="ent"><div class="nm"><b>'+esc(c.n)+'</b><span>'+r0(c.k)+' سعر · '+r0(c.p)+' بروتين · '+r0(c.c)+' كارب · '+r0(c.f)+' دهون (لكل 100 جم)</span></div><button class="x" data-act="cfDel" data-v="'+esc(c.id)+'" aria-label="مسح">×</button></div>').join("");
   const u=S.ui.cf||{},ci=(k,l,ph)=>'<div><label class="lb" for="cf_'+k+'">'+l+'</label><input class="inp" id="cf_'+k+'" data-in="cfi" data-k="'+k+'" '+(k==="n"?'':'type="number" inputmode="decimal" ')+'placeholder="'+(ph||"")+'" value="'+esc(u[k]||"")+'"></div>';
-  h+=fcard('🧾','#0ea5e9','أصنافي','',''+'<p class="sub">أضف أي منتج من الباكيدج بقيمه لكل 100 جم، وهيظهر في بحث الأصناف تحت "أصنافي". كمان تقدر تدوّر على منتجات معبأة من تبويب "منتجات" وإنت بتضيف أكل.</p>'+cf
-    +'<div class="grid2">'+ci("n","اسم المنتج","مثلا: بسكويت دايجستف")+ci("k","سعرات /100جم")+ci("p","بروتين")+ci("c","كارب")+ci("f","دهون")+ci("u","وزن الحصة (جم، اختياري)")+'</div><button class="btn" data-act="cfAdd">أضف الصنف</button>');
+  return '<h2 id="flT">أصنافي</h2><p class="sub">أضف أي منتج من الباكيدج بقيمه لكل 100 جم، وهيظهر في بحث الأصناف تحت "أصنافي". كمان تقدر تدوّر على منتجات معبأة من تبويب "منتجات" وإنت بتضيف أكل.</p>'+cf
+    +'<div class="grid2">'+ci("n","اسم المنتج","مثلا: بسكويت دايجستف")+ci("k","سعرات /100جم")+ci("p","بروتين")+ci("c","كارب")+ci("f","دهون")+ci("u","وزن الحصة (جم، اختياري)")+'</div><button class="btn" data-act="cfAdd">أضف الصنف</button><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
+const ITEMS_ART='<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="108" rx="34" ry="6" fill="#000" opacity=".2"/><path d="M30 44h60l-6 58H36z" fill="#fff7e6" stroke="#d99a00" stroke-width="3" stroke-linejoin="round"/><path d="M44 44q0-22 16-22t16 22" fill="none" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/><rect x="42" y="60" width="36" height="24" rx="5" fill="#fff" stroke="#e5c27a" stroke-width="2"/><path d="M48 66v12M54 66v12M58 66v12M64 66v12M70 66v12" stroke="#334155" stroke-width="2.4"/><circle cx="92" cy="30" r="9" fill="#22c55e"/><path d="M92 25v10M87 30h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+function viewFood(){
+  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
+  const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
+  const fe=favEnts(),fshow=fe.slice(0,3).join("");
+  const tipsBtn='<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button>';
+  h+='<div class="frow span">'
+    +'<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
+    +'<button class="sq itemsq" data-act="docOpen" data-v="i" aria-label="أصنافي"><span class="sqi" aria-hidden="true">'+ITEMS_ART+'</span><span class="sqb"><b>أصنافي</b><small>ضيف منتجاتك</small></span></button>'
+    +tipsBtn.replace('class="sq tipsq"','class="sq tipsq dsk"')+'</div>'
+    +'<button class="infoban" data-act="tab" data-v="info"><span class="ibi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="min0"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button>'
+    +fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw)).replace('class="card fcd"','class="card fcd hackc"')
+    +fcard('⭐','#eab308','وجباتي المفضلة','','<p class="sub">وجباتك المحفوظة من "يلا نطبخ".</p>'+(fshow||'<p class="hint">لسه مفيش وجبات محفوظة.</p>')+(fe.length>3?'<button class="btn ghost sm" data-act="docOpen" data-v="f">عرض الكل ('+fe.length+')</button>':"")).replace('class="card fcd"','class="card fcd favc"')
+    +'</div>';
   return h;
 }
 function pricesCard2(){
@@ -565,7 +573,7 @@ function pricesCard2(){
     b+=det("pr"+ci,'<span class="pe">'+E[ci]+'</span> '+esc(KPL(c)),'<ul class="pl">'+rows+'</ul>')});
   return fcard("💰","#16a34a","أسعار السوق","أسعار تقريبية للتجزئة في مصر ("+esc(KPL(KP.DATE))+") من نشرات الأسعار. بتختلف حسب المنطقة والمحل، والعلامة * معناها تقدير مش سعر منشور.",b)}
 function viewInfo(){
-  let h='<header class="top"><div class="min0"><h1>معلومات</h1><p class="sub">نصايح وأسعار وصوصات ونصايح في مكان واحد.</p></div></header>';
+  let h='<header class="top"><div class="min0"><h1>معلومات</h1><p class="sub">نصايح وأسعار وصوصات في مكان واحد.</p></div></header>';
   h+=fcard("💡","#f59e0b","نصايح عالماشي","اسحب واختار الموضوع اللي محتاجه.",slider(KA.TIPS.map((_,i)=>tipSlide(i))));
   h+=pricesCard2();
   h+=fcard('🥣','#16a34a','صوصات لايت','',''
@@ -1176,8 +1184,9 @@ function drawFlow(){
   else if(f.k==="sug")b=fsHtml();
   else if(f.k==="doc")b=docHtml(f.id);
   else{const sl=S.profile.sl||{};b='<h2 id="flT">صحيت؟</h2><p class="sub">'+(sl.at?'دخلت تنام الساعة '+esc(hhmm(new Date(sl.at)))+'. ':'')+'لو صحيت هعرض لك خطة اليوم وأرجّع التنبيهات.</p><div class="row"><button class="btn" data-act="wakeYes">اه صحيت</button><button class="btn ghost" data-act="wakeNo">لا، لسه نايم</button></div>'}
-  h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
-  const v=h.querySelector(".viewer");if(v)v.scrollTop=0;
+  const pv=h.querySelector(".viewer"),ps=pv?pv.scrollTop:0,tall=f.k==="doc"&&(f.id==="i"||f.id==="f");
+  h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer'+(tall?" tall":"")+'" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
+  const v=h.querySelector(".viewer");if(v)v.scrollTop=(tall&&ps)?ps:0;
 }
 function checkWake(){
   if((S.mode==="coach"&&S.profile.asCoach)||S.loading||S.auth==='out'||S.auth==='wait'||!S.profile.onboarded||S.ob||S.flow||S.wakeAsked||!(S.profile.sl&&S.profile.sl.asleep))return;
@@ -1587,6 +1596,7 @@ function obDone(){
 function inField(){const a=document.activeElement;return !!(a&&a!==document.body&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$("#app").contains(a))}
 function render(keep){
   applySplit();
+  if(S.flow&&S.flow.k==="doc"&&(S.flow.id==="i"||S.flow.id==="f"))setTimeout(drawFlow,0);
   const y=window.scrollY;
   let body,nav=true,wide=false;
   if(S.auth==="wait"){body='<div class="card"><p class="sub">ثانية واحدة...</p></div>';nav=false}
