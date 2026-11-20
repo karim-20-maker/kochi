@@ -441,3 +441,7 @@ html[data-theme="dark"] .slc{background:var(--surface)}
 .favc,.hackc{width:100%;align-self:stretch}
 
 @media (min-width:1000px){.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:760px}}
+
+.sq .mgif{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;z-index:1;border-radius:inherit}
+.sq.suggest .sqb{z-index:2}
+.sq .mgif{object-position:48% 0}

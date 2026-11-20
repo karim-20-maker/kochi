@@ -554,7 +554,7 @@ function viewFood(){
   const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
   const fe=favEnts(),fshow=fe.slice(0,3).join("");
   h+='<div class="frow span">'
-    +'<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
+    +'<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<img class="mgif" src="img/hungry.gif" alt="" onerror="this.remove()">'+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
     +'<button class="sq itemsq" data-act="docOpen" data-v="i" aria-label="أصنافي"><span class="sqi" aria-hidden="true">'+ITEMS_ART+'</span><span class="sqb"><b>أصنافي</b><small>ضيف منتجاتك</small></span></button>'
     +'</div>'
     +fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw)).replace('class="card fcd"','class="card fcd hackc"')
