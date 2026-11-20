@@ -395,7 +395,7 @@ function viewToday(){
     const bd2=res.bud[id],sugOn=S.ui.sugSlot===id&&sugH;
     const hbody=sugOn?'<button class="btn ghost sm" data-act="sugClose">← رجوع</button>'+sugH
       :(logged.length?entries:'<div class="mempty"><span aria-hidden="true">'+SLE[id][0]+'</span><p>'+(res.passed.indexOf(id)>=0?'فات ميعادها. لو أكلت سجّلها.':'لسه ماسجلتش.')+'</p>'+(bd2?'<p class="sub">ميزانية تقريبية: '+r0(bd2.k)+' سعر و'+r0(bd2.p)+' جم بروتين</p>':'')+'</div>');
-    const hacts=(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button>'+(sugH&&!sugOn?'<button class="btn sm ghost" data-act="sugOpen" data-v="'+id+'">💡 اقتراحات</button>':'');
+    const hacts=(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button>';
     slotsH.push({id,t:s[1],html:slotCard(id,b),hub:mcardH(SLE[id][0],SLE[id][1],s[1],logged.length?r0(sk)+" سعر اتسجلت":(bd2?"ميزانية "+r0(bd2.k)+" سعر":"—"),hbody,sugOn?"":hacts)});
   });
   const moonSvg='<svg viewBox="0 0 64 64" aria-hidden="true"><path class="mn" d="M44 8a26 26 0 1 0 12 38A22 22 0 0 1 44 8z" fill="#fde68a"/><path d="M26 34q3 3 6 0M38 36q3 3 6 0" stroke="#92400e" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M33 44q3 2.4 6 0" stroke="#92400e" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="23" cy="40" r="3" fill="#f9a8d4" opacity=".7"/></svg>';
