@@ -195,22 +195,5 @@ var H=[
  i:[["نسكافيه أو قهوة: معلقة صغيرة","Instant coffee: 1 tsp"],["لبن خالي الدسم: 150 مل","Skimmed milk: 150 ml"],["تلج ومحلي","Ice and sweetener"]],
  s:[["دوّب القهوة في شوية ميه سخنة.","Dissolve the coffee in a little hot water."],["املا الكوباية تلج وصب اللبن والقهوة وحلّي.","Fill a glass with ice, pour in the milk and coffee and sweeten."]]}
 ];
-/* sweetener guide: [name ar,en, strength ar,en, kcal, notes ar,en] */
-var SWT=[
-{n:["سكرالوز (Sucralose) — نقط أو بودرة","Sucralose (drops or powder)"],
- b:["حلاوته حوالي 600 ضعف السكر. النقط تقريبا صفر سعرات، لكن أكياس البودرة بتتضاف عليها مادة مالتودكسترين فيها حوالي 3 سعرات للكيس. ثابت على الحرارة فينفع في الخبز والتسخين. مناسب للقهوة والشاي والسحلب. الجرعة المسموحة عالميا عالية جدا (حوالي 5 مجم/كجم في اليوم حسب FDA) ومش بتوصلها بالاستخدام العادي.","About 600 times sweeter than sugar. The drops are roughly zero calories, but powder sachets add maltodextrin, about 3 kcal per sachet. Heat-stable, so fine for baking and hot drinks. Good in coffee, tea and sahlab. The acceptable daily intake is high (about 5 mg/kg per day per the FDA) and you won't get near it with normal use."]},
-{n:["ستيفيا (Stevia)","Stevia"],
- b:["من ورق نبات الستيفيا، حلاوتها 200 إلى 300 ضعف السكر وصفر سعرات. ثابتة على الحرارة. لو زودت الجرعة بيظهر طعم مر أو عرق سوس، فابدأ بنقطة وزوّد. موجودة نقط وبودرة وأكياس (في السوق المصري في ماركات زي نو كال ستيفيولا وزعدانة وبيو إيجيبت، والأسعار بتختلف فشوف الصيدلية أو الهايبر).","Made from the stevia leaf, 200 to 300 times sweeter than sugar and zero calories. Heat-stable. Too much tastes bitter or like licorice, so start with a drop and build up. Sold as drops, powder and sachets (in Egypt brands like No Cal Steviola, Zaadana and Bio Egypt, prices vary so check a pharmacy or hypermarket)."]},
-{n:["إريثريتول (Erythritol)","Erythritol"],
- b:["حلاوته حوالي 70% من السكر وسعراته قريبة من الصفر. بيدّي حجم زي السكر فمناسب للكيك والحلويات، وطعمه فيه برودة خفيفة. الكمية الكبيرة (فوق 30 إلى 40 جم مرة واحدة) ممكن تعمل انتفاخ وإسهال. في دراسة رصدية في 2023 ربطته بمشاكل في القلب لكنها ماثبتتش إنه السبب، فاستخدمه باعتدال.","About 70% as sweet as sugar and close to zero calories. It adds bulk like sugar so it suits cakes and desserts, with a slight cooling taste. Large amounts (over 30 to 40 g at once) can cause bloating and diarrhea. A 2023 observational study linked it to heart problems but didn't prove it causes them, so use it in moderation."]},
-{n:["مونك فروت (Monk fruit)","Monk fruit"],
- b:["حلاوته 150 إلى 200 ضعف السكر وصفر سعرات وطعمه قريب من السكر من غير مرارة كتير. غالي ومعظم المنتجات مخلوطة بإريثريتول.","150 to 200 times sweeter than sugar, zero calories, and tastes close to sugar without much bitterness. It's pricey and most products are blended with erythritol."]},
-{n:["أسبارتام وأسيسلفام (في المشروبات الزيرو)","Aspartame and acesulfame-K (in zero drinks)"],
- b:["الأسبارتام حلاوته حوالي 200 ضعف السكر ومابيتحملش الحرارة فماتطبخش بيه، وممنوع لمرضى PKU. الأسيسلفام بيستحمل الحرارة. الجرعة المسموحة للأسبارتام حوالي 40 مجم/كجم يوميا في أوروبا، يعني كام لتر من المشروبات الزيرو في اليوم مش هيعدّوها.","Aspartame is about 200 times sweeter than sugar and doesn't survive heat, so don't cook with it, and people with PKU must avoid it. Acesulfame-K handles heat. The aspartame limit is about 40 mg/kg per day in Europe, so a few litres of zero drinks a day won't get near it."]},
-{n:["حاجات شكلها دايت ومش زيرو","Look-diet but not zero"],
- b:["زايليتول (حوالي 2.4 سعر/جم) ومالتيتول (حوالي 2.1 سعر/جم) في الشيكولاتة السوغر فري بيدّوا سعرات وممكن يعملوا إسهال. والزايليتول سام جدا للكلاب. العسل والبلح وسكر جوز الهند هم سكر برضو.","Xylitol (about 2.4 kcal/g) and maltitol (about 2.1 kcal/g) in sugar-free chocolate still give calories and can cause diarrhea. Xylitol is very toxic to dogs. Honey, dates and coconut sugar are still sugar."]},
-{n:["نصايح عملية","Practical tips"],
- b:["ابدأ بأقل جرعة وزوّد تدريجيا لأن النقط مركّزة جدا. خلط ستيفيا مع إريثريتول بيدّي طعم أقرب للسكر. اقرا الملصق وشوف لو فيه دكستروز أو مالتودكسترين (بيزوّد سعرات وكارب). وده كلام عام وليس بديلا لدكتور لو عندك سكر أو حمل أو مرض مزمن.","Start with the smallest dose and build up because drops are very concentrated. Blending stevia with erythritol tastes closer to sugar. Read the label for dextrose or maltodextrin (adds calories and carbs). This is general info, not a replacement for a doctor if you have diabetes, are pregnant or have a chronic illness."]}
-];
-window.KP={L:L,DATE:DATE,CATS:CATS,P:P,REF:REF,M:M,SW:SW,calcMeal:calcMeal,options:options,itemText:itemText,H:H,SWT:SWT,EN:EN};
+window.KP={L:L,DATE:DATE,CATS:CATS,P:P,REF:REF,M:M,SW:SW,calcMeal:calcMeal,options:options,itemText:itemText,H:H,EN:EN};
 })();

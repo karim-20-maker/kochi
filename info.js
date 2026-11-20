@@ -3,27 +3,28 @@
 var EN=!!(window.KI18N&&KI18N.lang&&KI18N.lang()==="en");
 function L(a){return typeof a==="string"?a:(EN?a[1]:a[0])}
 var star='<path d="M0-9L2.6-2.6 9 0 2.6 2.6 0 9-2.6 2.6-9 0-2.6-2.6z"/>';
-var mascot='<svg class="mscot" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="mgF" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#ff9f3a"/></radialGradient></defs>'
-+'<ellipse class="msh" cx="100" cy="186" rx="52" ry="8" fill="#000" opacity=".18"/>'
-+'<g class="mbob"><path d="M58 62q-6-30 16-34 8-22 30-14 20-8 30 12 24 2 20 30z" fill="#fff" stroke="#e5e7eb" stroke-width="2"/><rect x="62" y="58" width="76" height="14" rx="6" fill="#f3f4f6"/>'
-+'<circle cx="100" cy="115" r="66" fill="url(#mgF)" stroke="#e8841a" stroke-width="3"/>'
-+'<g class="meye"><path d="M66 100q11-16 22 0" stroke="#5a2d0c" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M112 100q11-16 22 0" stroke="#5a2d0c" stroke-width="6" fill="none" stroke-linecap="round"/></g>'
-+'<circle cx="58" cy="124" r="10" fill="#ff6b8b" opacity=".55"/><circle cx="142" cy="124" r="10" fill="#ff6b8b" opacity=".55"/>'
-+'<path d="M68 122q32 46 64 0z" fill="#7a1f1f" stroke="#5a2d0c" stroke-width="3" stroke-linejoin="round"/><path d="M82 140q18 14 36 0q-18-10-36 0z" fill="#ff7f9e"/>'
-+'<g class="mlick"><path d="M128 124q26-4 30 10q-2 14-22 8q-8-6-8-18z" fill="#ff5c85" stroke="#d63b66" stroke-width="2.5" stroke-linejoin="round"/><path d="M142 128q6 4 8 10" stroke="#d63b66" stroke-width="2" fill="none" stroke-linecap="round"/></g></g>'
-+'<g class="mspk" fill="#fff"><g transform="translate(34 60)">'+star+'</g><g class="s2" transform="translate(170 78) scale(.8)">'+star+'</g><g class="s3" transform="translate(158 36) scale(.6)">'+star+'</g></g>'
-+'<text class="mhrt" x="22" y="108" font-size="20">❤</text><text class="mhrt h2" x="172" y="150" font-size="16">❤</text></svg>';
+var mascot='<svg class="mscot" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="mgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient><radialGradient id="mgK" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#ffd9ad"/><stop offset="1" stop-color="#eaa66b"/></radialGradient></defs>'
++'<ellipse cx="100" cy="190" rx="70" ry="9" fill="#000" opacity=".2"/>'
++'<g class="mbob"><path d="M34 196q4-56 66-58q62 2 66 58z" fill="url(#mgS)" stroke="#1e40af" stroke-width="3"/><path d="M84 140l16 20 16-20" fill="#fff" stroke="#c7d2fe" stroke-width="2"/>'
++'<rect x="86" y="118" width="28" height="26" rx="10" fill="#e7a66d"/>'
++'<ellipse cx="54" cy="84" rx="8" ry="12" fill="#eaa66b" stroke="#c98351" stroke-width="2"/><ellipse cx="146" cy="84" rx="8" ry="12" fill="#eaa66b" stroke="#c98351" stroke-width="2"/>'
++'<ellipse cx="100" cy="82" rx="47" ry="52" fill="url(#mgK)" stroke="#c98351" stroke-width="3"/>'
++'<path d="M52 70q-6-44 48-46q54 0 48 46q-14-26-48-26q-34 0-48 26z" fill="#2b1b12" stroke="#170d08" stroke-width="2.5" stroke-linejoin="round"/>'
++'<g class="mbrow"><path d="M66 62q12-10 26-2" stroke="#2b1b12" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M108 60q14-8 26 2" stroke="#2b1b12" stroke-width="6" fill="none" stroke-linecap="round"/></g>'
++'<g class="meye"><ellipse cx="79" cy="78" rx="14" ry="16" fill="#fff" stroke="#6b4a33" stroke-width="2.5"/><ellipse cx="121" cy="78" rx="14" ry="16" fill="#fff" stroke="#6b4a33" stroke-width="2.5"/>'
++'<g class="mpup"><circle cx="79" cy="80" r="9" fill="#3a2414"/><circle cx="121" cy="80" r="9" fill="#3a2414"/><circle cx="75" cy="76" r="3.4" fill="#fff"/><circle cx="117" cy="76" r="3.4" fill="#fff"/><circle cx="83" cy="84" r="1.8" fill="#fff"/><circle cx="125" cy="84" r="1.8" fill="#fff"/></g></g>'
++'<circle cx="62" cy="102" r="9" fill="#ff7a8a" opacity=".5"/><circle cx="138" cy="102" r="9" fill="#ff7a8a" opacity=".5"/>'
++'<path d="M96 88q4 8 8 0" stroke="#c98351" stroke-width="3" fill="none" stroke-linecap="round"/>'
++'<path d="M72 108q28 38 56 0z" fill="#7a1f1f" stroke="#4a1010" stroke-width="3" stroke-linejoin="round"/><path d="M84 122q16 14 32 0q-16-9-32 0z" fill="#ff7f9e"/><path d="M76 109h48" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>'
++'<path class="mdrool" d="M126 112q6 8 2 16q-6-2-4-10z" fill="#9fd8ff" stroke="#5aaeea" stroke-width="2" stroke-linejoin="round"/></g>'
++'<g class="mfork"><path d="M26 130V96M18 96v12q0 8 8 8t8-8V96" stroke="#e5e7eb" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="26" cy="140" r="11" fill="#eaa66b" stroke="#c98351" stroke-width="2.5"/></g>'
++'<g class="mknife"><path d="M176 132V92q10 4 8 22q-2 12-8 18z" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2.5" stroke-linejoin="round"/><circle cx="174" cy="142" r="11" fill="#eaa66b" stroke="#c98351" stroke-width="2.5"/></g>'
++'<g class="mplate"><ellipse cx="100" cy="184" rx="42" ry="10" fill="#fff" stroke="#d1d5db" stroke-width="2.5"/><ellipse cx="100" cy="180" rx="30" ry="6.5" fill="#f3f4f6"/><ellipse cx="86" cy="177" rx="13" ry="6" fill="#a35a2a" stroke="#7a3f18" stroke-width="2"/><ellipse cx="112" cy="177" rx="13" ry="6" fill="#b86a35" stroke="#7a3f18" stroke-width="2"/><path d="M76 173q6-6 12 0q6-6 12 0q6-6 12 0q6-6 12 0" stroke="#4caf50" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="100" cy="172" r="4" fill="#ef4444"/></g>'
++'<g class="mstm" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".85"><path d="M88 166q-5-8 0-14q5-6 0-12"/><path d="M104 166q-5-8 0-14q5-6 0-12"/><path d="M118 168q-5-8 0-14q5-6 0-12"/></g></svg>';
 function g(id,a,b){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>'}
 var sh='<ellipse cx="60" cy="110" rx="34" ry="6" fill="#000" opacity=".18"/>';
 var PROD={
-drops:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd1","#9bd4ff","#3a8fe0")+'</defs>'+sh+'<rect x="40" y="46" width="40" height="60" rx="12" fill="url(#pd1)" stroke="#2a6fb8" stroke-width="2.5"/><rect x="46" y="28" width="28" height="22" rx="6" fill="#fff" stroke="#c9d3df" stroke-width="2.5"/><path d="M54 28V16q6-8 12 0v12" fill="#f1f5f9" stroke="#c9d3df" stroke-width="2.5"/><rect x="46" y="62" width="28" height="30" rx="6" fill="#fff" opacity=".92"/><circle cx="60" cy="72" r="6" fill="#3a8fe0"/><path d="M60 62q5 7 0 10q-5-3 0-10z" fill="#fff" opacity=".0"/><text x="60" y="88" font-size="11" font-weight="800" text-anchor="middle" fill="#2a6fb8">0</text></svg>',
-stevia:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd2","#b7f0a8","#3fae4a")+'</defs>'+sh+'<rect x="36" y="30" width="48" height="76" rx="8" fill="url(#pd2)" stroke="#2d8a38" stroke-width="2.5"/><path d="M36 38h48" stroke="#2d8a38" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M60 98q-22-8-22-30q20-2 22 30z" fill="#fff" opacity=".95"/><path d="M60 98q22-8 22-30q-20-2-22 30z" fill="#e8ffe0" opacity=".95"/><path d="M60 98V62" stroke="#2d8a38" stroke-width="2.5" stroke-linecap="round"/></svg>',
-ery:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd3","#ffffff","#dbe4ee")+'</defs>'+sh+'<rect x="34" y="44" width="52" height="62" rx="12" fill="url(#pd3)" stroke="#9fb0c4" stroke-width="2.5"/><rect x="38" y="28" width="44" height="18" rx="6" fill="#64748b"/><circle cx="48" cy="70" r="2.6" fill="#9fb0c4"/><circle cx="62" cy="64" r="2.6" fill="#9fb0c4"/><circle cx="74" cy="76" r="2.6" fill="#9fb0c4"/><circle cx="56" cy="84" r="2.6" fill="#9fb0c4"/><circle cx="72" cy="94" r="2.6" fill="#9fb0c4"/><circle cx="46" cy="94" r="2.6" fill="#9fb0c4"/></svg>',
-monk:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd4","#ffd27a","#f08a1c")+'</defs>'+sh+'<circle cx="56" cy="70" r="30" fill="url(#pd4)" stroke="#c46a0c" stroke-width="2.5"/><path d="M56 40q4-12 16-12q-2 12-16 12z" fill="#4caf50" stroke="#2d8a38" stroke-width="2"/><path d="M42 62q4-10 14-10" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".6"/><rect x="82" y="64" width="22" height="38" rx="5" fill="#fff6e0" stroke="#c46a0c" stroke-width="2"/></svg>',
-zero:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd5","#e9eef5","#a9b6c6")+'</defs>'+sh+'<rect x="38" y="26" width="44" height="80" rx="10" fill="url(#pd5)" stroke="#6b7a8d" stroke-width="2.5"/><rect x="38" y="36" width="44" height="6" fill="#6b7a8d" opacity=".4"/><circle cx="60" cy="68" r="15" fill="#ef4444"/><text x="60" y="75" font-size="19" font-weight="800" text-anchor="middle" fill="#fff">0</text></svg>',
-bar:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd6","#a0663a","#5c3318")+'</defs>'+sh+'<rect x="24" y="38" width="72" height="56" rx="8" fill="url(#pd6)" stroke="#3b200e" stroke-width="2.5"/><path d="M48 38v56M72 38v56M24 66h72" stroke="#3b200e" stroke-width="2" opacity=".6"/><circle cx="90" cy="34" r="14" fill="#facc15" stroke="#b45309" stroke-width="2.5"/><text x="90" y="40" font-size="18" font-weight="800" text-anchor="middle" fill="#7c2d12">!</text></svg>',
 tips:'<svg viewBox="0 0 120 120" aria-hidden="true"><defs>'+g("pd7","#fff3b0","#ffc933")+'</defs>'+sh+'<path d="M60 18a28 28 0 0 0-16 51c4 4 6 8 6 14h20c0-6 2-10 6-14A28 28 0 0 0 60 18z" fill="url(#pd7)" stroke="#d99a00" stroke-width="2.5"/><rect x="48" y="86" width="24" height="8" rx="3" fill="#9aa5b1"/><rect x="52" y="96" width="16" height="7" rx="3" fill="#6b7a8d"/></svg>'};
-var SWA=["drops","stevia","ery","monk","zero","bar","tips"];
 /* hack card art: [emoji, c1, c2, group s=savory d=sweet] aligned to KP.H order */
 var HA=[["🥛","#fde68a","#f59e0b","d"],["🥙","#fecaca","#ef4444","s"],["🍕","#fed7aa","#f97316","s"],["🌿","#bbf7d0","#16a34a","s"],["🍆","#ddd6fe","#7c3aed","s"],["🫑","#bbf7d0","#22c55e","s"],["🥔","#fde68a","#d97706","s"],["🥬","#d9f99d","#65a30d","s"],["🥣","#a7f3d0","#059669","s"],["🍲","#fed7aa","#ea580c","s"],["🍮","#fecdd3","#e11d48","d"],["🍨","#fbcfe8","#db2777","d"],["🍦","#e9d5ff","#9333ea","d"],["☕","#d6bcab","#7c4a2b","d"],["🫐","#c7d2fe","#4f46e5","d"],["🥞","#fde68a","#ca8a04","d"],["🧋","#e7d3c0","#a16207","d"]];
 var TIPS=[
@@ -62,7 +63,8 @@ var TIPS=[
 ["ثبّت ميعاد للغدا، ولا تاكل قدام الكمبيوتر. الأكل وإنت مشتت بيزوّد الكمية.","Set a lunch time and don't eat at the computer. Distracted eating adds portions."],
 ["جهّز سناك في الشنطة أو التلاجة: مكسرات (حفنة صغيرة) أو فاكهة أو زبادي.","Keep a snack in your bag or fridge: a small handful of nuts, fruit or yogurt."],
 ["الهدف 8000 إلى 10000 خطوة. مكالمات الشغل ممكن تتعمل وإنت ماشي.","Aim for 8000 to 10000 steps. Work calls can be taken while walking."],
-["القهوة والمشروبات المحلاة بتتحسب. استعمل المحلي من دليل المحليات.","Coffee and sweetened drinks count. Use sweeteners from the sweetener guide."]]}
+["القهوة والمشروبات المحلاة بتتحسب. اشرب القهوة والشاي من غير سكر أو بمحلي زيرو.","Coffee and sweetened drinks count. Have coffee and tea unsweetened or with a zero-calorie sweetener."]]}
 ];
-window.KA={L:L,mascot:mascot,PROD:PROD,SWA:SWA,HA:HA,TIPS:TIPS};
+var SLUG=['sahlab', 'hawawshi', 'pizza', 'grape-leaves', 'eggplant', 'pepper', 'potato', 'zucchini', 'molokhia', 'fatta', 'jelly', 'gelato', 'ice-cream', 'hot-choc', 'chia', 'pancakes', 'latte'];
+window.KA={SLUG:SLUG,L:L,mascot:mascot,PROD:PROD,HA:HA,TIPS:TIPS};
 })();

@@ -529,23 +529,22 @@ function fsHtml(){
 function fsLog(slot){const B=S.fs.mode==="bud"?Number(S.fs.budget)||0:0,o=fsCard(slot,B).o;
   addMeal(todayStr(),slot,{name:KPL(o.m[1]),q:o.items.map(x=>KP.itemText(x)).join("، "),k:Math.round(o.k),p:Math.round(o.p*10)/10,c:Math.round(o.c*10)/10,f:Math.round(o.f*10)/10})}
 function fcard(emo,col,title,sub,inner){return '<section class="card fcd" style="--c:'+col+'"><div class="fch"><span class="fce" aria-hidden="true">'+emo+'</span><div class="min0"><h2>'+title+'</h2>'+(sub?'<p class="sub">'+sub+'</p>':"")+'</div></div>'+inner+'</section>'}
+function hImg(i){const sg=(KA.SLUG||[])[i];return sg?'<img class="him" src="img/hacks/'+sg+'.jpg" alt="" loading="lazy" onerror="this.remove()">':""}
 function hackSlide(i){const x=KP.H[i],a=KA.HA[i]||["🍽️","#e5e7eb","#9ca3af","s"];
-  return '<button class="slc" data-act="docOpen" data-v="h'+i+'" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="sla" aria-hidden="true"><span class="sle">'+a[0]+'</span><span class="slk num">'+x.k+' سعر</span></span><b class="slt">'+esc(KPL(x.n))+'</b><span class="slm num">'+x.p+' بروتين · '+x.c+' كارب</span></button>'}
+  return '<button class="slc" data-act="docOpen" data-v="h'+i+'" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="sla" aria-hidden="true"><span class="sle">'+a[0]+'</span>'+hImg(i)+'<span class="slk num">'+x.k+' سعر</span></span><b class="slt">'+esc(KPL(x.n))+'</b><span class="slm num">'+x.p+' بروتين · '+x.c+' كارب</span></button>'}
 function slider(items){return '<div class="slider" role="list">'+items.join("")+'</div>'}
 function hackDoc(i){const x=KP.H[i],a=KA.HA[i]||["🍽️","#e5e7eb","#9ca3af"];
-  return '<div class="dh" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="dhe" aria-hidden="true">'+a[0]+'</span></div><h2 id="flT">'+esc(KPL(x.n))+'</h2>'
+  return '<div class="dh" style="--c1:'+a[1]+';--c2:'+a[2]+'"><span class="dhe" aria-hidden="true">'+a[0]+'</span>'+hImg(i)+'</div><h2 id="flT">'+esc(KPL(x.n))+'</h2>'
     +'<p class="sub">الوقت: '+esc(KPL(x.t))+'. للحصة: '+x.k+' سعر · '+x.p+' بروتين · '+x.c+' كارب · '+x.f+' دهون (تقريبي)</p><p class="lb">المكونات:</p><ul class="pl">'+x.i.map(q=>'<li>'+esc(KPL(q))+'</li>').join("")+'</ul><p class="lb">الطريقة:</p><ol class="pl">'+x.s.map(q=>'<li>'+esc(KPL(q))+'</li>').join("")+'</ol>'
     +(x.nt?'<p class="hint">'+esc(KPL(x.nt))+'</p>':'')+'<div class="row"><button class="btn sm" data-act="hackEat" data-v="'+i+'">سجّلها سناك</button><button class="btn ghost sm" data-act="flowClose">إغلاق</button></div>'}
-function sweetSlide(i){const x=KP.SWT[i];return '<button class="slc prod" data-act="docOpen" data-v="w'+i+'"><span class="sla pr" aria-hidden="true">'+KA.PROD[KA.SWA[i]||"tips"]+'</span><b class="slt">'+esc(KPL(x.n))+'</b></button>'}
-function sweetDoc(i){const x=KP.SWT[i];return '<div class="dh prd">'+KA.PROD[KA.SWA[i]||"tips"]+'</div><h2 id="flT">'+esc(KPL(x.n))+'</h2><p>'+esc(KPL(x.b))+'</p><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
 function tipSlide(i){const x=KA.TIPS[i];return '<button class="slc" data-act="docOpen" data-v="t'+i+'" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="sla" aria-hidden="true"><span class="sle">'+x.e+'</span></span><b class="slt">'+esc(KA.L(x.n))+'</b></button>'}
 function tipDoc(i){const x=KA.TIPS[i];return '<div class="dh" style="--c1:'+x.c1+';--c2:'+x.c2+'"><span class="dhe" aria-hidden="true">'+x.e+'</span></div><h2 id="flT">'+esc(KA.L(x.n))+'</h2><ol class="pl">'+x.p.map(q=>'<li>'+esc(KA.L(q))+'</li>').join("")+'</ol><p class="hint">كلام عام ومش بديل لدكتور أو أخصائي.</p><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
-function docHtml(k){const n=Number(k.slice(1));return k[0]==="h"?hackDoc(n):k[0]==="w"?sweetDoc(n):tipDoc(n)}
+function docHtml(k){const n=Number(k.slice(1));return k[0]==="h"?hackDoc(n):tipDoc(n)}
 function viewFood(){
   const SL={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
   let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
   h+='<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
-    +'<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار ومحليات وصوصات</small></span></button></div>';
+    +'<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button></div>';
   const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
   h+=fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw));
   let fv="";
@@ -566,9 +565,8 @@ function pricesCard2(){
     b+=det("pr"+ci,'<span class="pe">'+E[ci]+'</span> '+esc(KPL(c)),'<ul class="pl">'+rows+'</ul>')});
   return fcard("💰","#16a34a","أسعار السوق","أسعار تقريبية للتجزئة في مصر ("+esc(KPL(KP.DATE))+") من نشرات الأسعار. بتختلف حسب المنطقة والمحل، والعلامة * معناها تقدير مش سعر منشور.",b)}
 function viewInfo(){
-  let h='<header class="top"><div class="min0"><h1>معلومات</h1><p class="sub">نصايح وأسعار ومحليات وصوصات في مكان واحد.</p></div></header>';
+  let h='<header class="top"><div class="min0"><h1>معلومات</h1><p class="sub">نصايح وأسعار وصوصات ونصايح في مكان واحد.</p></div></header>';
   h+=fcard("💡","#f59e0b","نصايح عالماشي","اسحب واختار الموضوع اللي محتاجه.",slider(KA.TIPS.map((_,i)=>tipSlide(i))));
-  h+=fcard("🍬","#0ea5e9","دليل المحليات","إيه اللي بيحلّي من غير سكر، وإزاي تستخدمه.",slider(KP.SWT.map((_,i)=>sweetSlide(i))));
   h+=pricesCard2();
   h+=fcard('🥣','#16a34a','صوصات لايت','',''
     +det("s1","صوص ثوم وزبادي (45 سعر/100 جم)","<p>200 جم زبادي يوناني + 2 فص ثوم مهروس + عصير نص ليمونة + ملح ونعناع أو شبت. يتحط على الفراخ والكفتة والسلطة.</p>")

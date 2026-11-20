@@ -398,3 +398,21 @@ html[dir=ltr]{--font-display:"Inter","Segoe UI",system-ui,sans-serif;--font-body
 .pe{font-size:18px}
 @media (min-width:1000px){.sq{aspect-ratio:1/1}.fgrid{max-width:520px}.slc{flex-basis:168px}.sla{height:128px}}
 html[data-theme="dark"] .slc{background:var(--surface)}
+.him{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.slk{z-index:2}
+.dh{position:relative}
+.mbrow{animation:mbrow 1.3s ease-in-out infinite;transform-origin:100px 62px}
+.mpup{animation:mpup 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.mdrool{animation:mdrool 1.6s ease-in infinite;transform-box:fill-box;transform-origin:50% 0}
+.mfork{animation:mfork 1s ease-in-out infinite;transform-origin:26px 140px}
+.mknife{animation:mfork 1s ease-in-out infinite reverse;transform-origin:174px 142px}
+.mstm path{animation:mstm 1.8s ease-in-out infinite}.mstm path:nth-child(2){animation-delay:.5s}.mstm path:nth-child(3){animation-delay:1s}
+@keyframes mbrow{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes mpup{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@keyframes mdrool{0%{transform:scaleY(.2);opacity:0}30%{opacity:1}100%{transform:scaleY(1.6) translateY(10px);opacity:0}}
+@keyframes mfork{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes mstm{0%{opacity:0;transform:translateY(6px)}50%{opacity:.9}100%{opacity:0;transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.mbrow,.mpup,.mdrool,.mfork,.mknife,.mstm path{animation:none}}
+.sq .mscot{top:0;width:76%}
+.sq.suggest .sqb{background:linear-gradient(rgba(255,244,222,0),rgba(255,244,222,.97) 38%);padding-top:14px}
+.sq.tipsq .sqb{background:linear-gradient(rgba(232,240,255,0),rgba(232,240,255,.97) 38%);padding-top:14px}
