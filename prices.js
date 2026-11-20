@@ -91,6 +91,11 @@ var M=[
 ["d",["زبادي يوناني وقريش وخيار","Greek yogurt, cottage cheese and cucumber"],[["greek",150],["cott",100],["cuc",150],["bread",90]]],
 ["d",["لحمة مفرومة وكوسة","Ground beef and zucchini"],[["beefm",150],["zuc",200],["tom",100],["oil",10]]],
 ["d",["ماكريل مشوي وسلطة","Grilled mackerel and salad"],[["mack",200],["tom",150],["cuc",100],["bread",45]]],
+["d",["كفتة مشوية وسلطة","Grilled kofta and salad"],[["beefm",150],["tom",150],["cuc",100],["onion",30],["bread",45]]],
+["d",["كبدة بالبصل وسلطة","Liver with onions and salad"],[["liver",200],["onion",80],["tom",100],["cuc",100],["oil",5],["bread",45]]],
+["d",["أوراك فراخ بالفرن وسلطة","Oven chicken thighs and salad"],[["cht",250],["tom",150],["cuc",100],["let",50],["bread",45]]],
+["l",["ماكريل ورز وسلطة","Mackerel, rice and salad"],[["mack",200],["rice",80],["tom",100],["cuc",100],["oil",5]]],
+["l",["صدور فراخ ومكرونة بالصلصة","Chicken breast with pasta and sauce"],[["chb",200],["pasta",80],["tom",150],["onion",40],["oil",10]]],
 ["s",["لوز وتفاحة","Almonds and an apple"],[["alm",25],["apple",180]]],
 ["s",["فول سوداني وبرتقالة","Peanuts and an orange"],[["pean",40],["orange",200]]],
 ["s",["زبادي يوناني وعين جمل","Greek yogurt and walnuts"],[["greek",150],["wal",20]]],
@@ -114,8 +119,12 @@ function best(m,T,B){var r=null,i;
   if(!r){r=calcMeal(m,SC[0]);r.over=true}
   return r}
 /* ranked options for a slot: target kcal T, budget B (0 = free) */
-function options(slot,T,B){
-  var a=M.filter(function(m){return m[0]===slot}).map(function(m){return best(m,T,B)});
+var PR={beefm:"meat",beefc:"meat",liver:"meat",chb:"chicken",cht:"chicken",bolti:"fish",sard:"fish",mack:"fish",shr:"fish",tuna:"fish"};
+function prots(m){var o={};m[2].forEach(function(a){if(PR[a[0]])o[PR[a[0]]]=1});return o}
+function options(slot,T,B,pf){
+  var all=M.filter(function(m){return m[0]===slot}),a=all;
+  if(pf&&pf.length&&(slot==="l"||slot==="d")){var f=all.filter(function(m){var o=prots(m);return pf.some(function(x){return o[x]})});if(f.length)a=f}
+  a=a.map(function(m){return best(m,T,B)});
   var ok=a.filter(function(x){return !x.over});
   if(!ok.length){a.sort(function(x,y){return x.cost-y.cost});return a}
   ok.forEach(function(x){x.score=x.p/Math.max(x.k,1)*100-Math.abs(x.k-T)/Math.max(T,1)*12});
@@ -130,6 +139,23 @@ var H=[
 {n:["سحلب دايت","Diet sahlab"],t:["5 دقايق","5 min"],k:100,p:7,c:17,f:.5,
  i:[["لبن خالي الدسم: 200 مل","Skimmed milk: 200 ml"],["نشا ذرة: معلقة صغيرة مليانة (8 جم)","Cornstarch: a heaped teaspoon (8 g)"],["محلي سكرالوز أو ستيفيا نقط: حسب الذوق","Sucralose or stevia drops: to taste"],["فانيليا وقرفة وجوز هند (اختياري)","Vanilla, cinnamon and a little coconut (optional)"]],
  s:[["دوّب النشا في ربع كوباية لبن بارد.","Dissolve the starch in a quarter glass of cold milk."],["سخّن باقي اللبن لحد ما يسخن وصب عليه خليط النشا وقلّب على نار هادية 2 إلى 3 دقايق لحد ما يتقل.","Heat the rest of the milk, pour in the starch mix and stir on low heat 2 to 3 minutes until it thickens."],["شيل من على النار وحلّي بالمحلي وحط الفانيليا. ورش قرفة.","Take it off the heat, sweeten it and add the vanilla. Sprinkle cinnamon."]]},
+{n:["حواوشي دايت","Diet hawawshi"],t:["25 دقيقة","25 min"],k:410,p:35,c:31,f:15,
+ i:[["لحمة مفرومة قليلة الدهن: 150 جم","Lean ground beef: 150 g"],["بصل مبشور: 50 جم وفلفل أخضر مفروم: 30 جم","Grated onion: 50 g and chopped green pepper: 30 g"],["نص رغيف عيش بلدي (45 جم)","Half a baladi loaf (45 g)"],["بقدونس وملح وفلفل وكمون وبهارات","Parsley, salt, pepper, cumin and spices"]],
+ s:[["اخلط اللحمة مع البصل والفلفل والبقدونس والتوابل كويس من غير زيت.","Mix the beef with the onion, pepper, parsley and spices well, with no oil."],["افتح نص الرغيف زي الجيب وافرد الحشو جواه رقيق.","Open the half loaf like a pocket and spread the filling thin inside."],["فرن 220 درجة أو اير فراير 200 درجة 12 إلى 15 دقيقة وقلّبه مرة.","Oven at 220 degrees or air fryer at 200 degrees for 12 to 15 minutes, flipping once."],["اللحمة لازم تستوي خالص ومفيش لون وردي جواها.","The meat must be cooked all the way, no pink inside."]]},
+{n:["بيتزا دايت على رغيف بلدي","Diet pizza on baladi bread"],t:["15 دقيقة","15 min"],k:510,p:45,c:57,f:14,
+ i:[["رغيف عيش بلدي: 90 جم (نصه لو عايزها أخف)","1 baladi loaf: 90 g (half for a lighter one)"],["صلصة طماطم من غير سكر: 3 معالق","Sugar-free tomato sauce: 3 tablespoons"],["موتزاريلا لايت أو ريد: 40 جم","Light mozzarella: 40 g"],["صدر فراخ مطبوخ مقطع: 80 جم","Cooked chicken breast, diced: 80 g"],["فلفل ألوان وزيتون ومشروم وأوريجانو","Bell peppers, olives, mushrooms and oregano"]],
+ s:[["افتح الرغيف نصين رقيقين، وحمّص الوش في الفرن 3 دقايق عشان يبقى مقرمش.","Split the loaf into two thin rounds and toast the inside 3 minutes so it's crisp."],["افرد الصلصة وحط الفراخ والخضار وبعدين الجبنة والأوريجانو.","Spread the sauce, then add the chicken, veggies, then the cheese and oregano."],["فرن 220 درجة 6 إلى 8 دقايق لحد ما الجبنة تدوب وتاخد لون.","Oven at 220 degrees 6 to 8 minutes until the cheese melts and browns."]]},
+{n:["محشي دايت (كوسة أو كرنب)","Diet mahshi (zucchini or cabbage)"],t:["50 دقيقة","50 min"],k:290,p:18,c:40,f:7,
+ i:[["كوسة صغيرة أو ورق كرنب: 250 جم","Small zucchini or cabbage leaves: 250 g"],["رز مصري نيّ: 40 جم","Raw rice: 40 g"],["لحمة مفرومة قليلة الدهن: 60 جم","Lean ground beef: 60 g"],["بقدونس وشبت وبصل وطماطم مفرومين","Chopped parsley, dill, onion and tomato"],["صلصة طماطم وتوابل وملح","Tomato sauce, spices and salt"]],
+ s:[["اخلط الرز والحشو والخضرة والتوابل (الرز نيّ).","Mix the raw rice, beef, herbs and spices."],["احشي الكوسة المفرّغة أو لف الكرنب وماتملاش لحد الآخر عشان الرز بيكبر.","Stuff the hollowed zucchini or roll the cabbage and don't fill to the top because the rice expands."],["رصّها في حلة وغطيها بالصلصة المخففة بميه وسيبها على نار هادية 40 دقيقة.","Pack them in a pot, cover with thinned sauce and simmer 40 minutes."]],
+ nt:["لو عايزه أخف: بدل الرز بقرنبيط مفروم (بيوفّر حوالي 130 سعر).","To go lighter: swap the rice for grated cauliflower (saves about 130 calories)."]},
+{n:["ملوخية دايت","Diet molokhia"],t:["25 دقيقة","25 min"],k:460,p:47,c:52,f:8,
+ i:[["ملوخية خضرا (طازة أو مجمدة): 200 جم","Green molokhia (fresh or frozen): 200 g"],["شوربة فراخ أو ميه، وتقلية: توم وكسبرة وزيت معلقة صغيرة","Chicken broth or water, and a garlic and coriander sauté in a teaspoon of oil"],["صدر فراخ نيّ: 150 جم، مسلوق","Raw chicken breast: 150 g, boiled"],["رز نيّ: 50 جم، مسلوق","Raw rice: 50 g, cooked"]],
+ s:[["اسلق الفراخ في ميه وبصلة وحبهان وطلّعها وقطّعها، واحتفظ بالشوربة.","Boil the chicken in water with an onion and cardamom, take it out and shred it, and keep the broth."],["سخّن الشوربة وضيف الملوخية وقلّب على نار هادية 3 دقايق من غير ما تغلي جامد.","Heat the broth, add the molokhia and stir on low heat 3 minutes without boiling hard."],["قلّي التوم والكسبرة في الزيت وحطهم على الملوخية.","Fry the garlic and coriander in the oil and pour over the molokhia."],["قدّمها على الرز مع الفراخ.","Serve it over the rice with the chicken."]],
+ nt:["الرقم ده للطبق كله (ملوخية + فراخ + رز). الملوخية لوحدها حوالي 115 سعر.","These numbers are for the whole plate (molokhia + chicken + rice). The molokhia alone is about 115 calories."]},
+{n:["فتة دايت","Diet fatta"],t:["30 دقيقة (واللحمة مسلوقة قبلها)","30 min (with pre-boiled meat)"],k:500,p:38,c:63,f:12,
+ i:[["نص رغيف عيش بلدي: 45 جم، محمّص في الفرن من غير زيت","Half a baladi loaf: 45 g, toasted in the oven with no oil"],["رز نيّ: 40 جم","Raw rice: 40 g"],["لحمة كندوز نيّة: 150 جم، مسلوقة","Raw beef cubes: 150 g, boiled"],["صلصة: طماطم 100 جم + توم وخل وملح","Sauce: 100 g tomato, garlic, vinegar and salt"],["شوربة اللحمة","The meat broth"]],
+ s:[["اسلق اللحمة لحد ما تستوي (ساعة ونص، أو 30 دقيقة في ضغط) واحتفظ بالشوربة.","Boil the beef until tender (an hour and a half, or 30 minutes in a pressure cooker) and keep the broth."],["قطّع العيش وحمّصه في الفرن 8 دقايق لحد ما يبقى مقرمش.","Cut the bread and toast it in the oven 8 minutes until crisp."],["اسلق الرز، وسوّي الصلصة: توم وخل وطماطم مبشورة 5 دقايق.","Cook the rice, and make the sauce: garlic, vinegar and grated tomato for 5 minutes."],["رص العيش وبعدين الرز وبلّلهم بمعلقتين شوربة، وحط اللحمة والصلصة فوق.","Layer the bread then the rice, moisten with two spoons of broth, and top with the meat and sauce."]]},
 {n:["جيلي زيرو شوجر بالزبادي","Sugar-free jelly with Greek yogurt"],t:["10 دقايق + تلات ساعات تلج","10 min + 3 hours chilling"],k:85,p:10,c:5,f:2,
  i:[["كيس جيلي زيرو شوجر (أي نكهة)","1 sachet sugar-free jelly (any flavour)"],["ميه سخنة حسب العلبة (حوالي 250 مل)","Hot water as on the pack (about 250 ml)"],["زبادي يوناني: 100 جم","Greek yogurt: 100 g"]],
  s:[["دوّب الجيلي في الميه السخنة وقلّب كويس.","Dissolve the jelly in the hot water and stir well."],["صب نص الكمية في كوباية وسيبها تتجمد في التلاجة ساعة.","Pour half into a cup and let it set in the fridge for an hour."],["اخلط الزبادي مع الباقي وصبه فوق الطبقة الأولى وسيبه ساعتين.","Mix the yogurt into the rest, pour it over the first layer and leave it two hours."]]},

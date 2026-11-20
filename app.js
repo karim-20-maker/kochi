@@ -498,7 +498,7 @@ function fsSlots(){const d=todayStr();return isTrainDay(d)?["b","p","l","d","s"]
 function fsCard(slot,B){
   const tg=targetsFor(todayStr()),sl=S.fs.scope==="day"?fsSlots():[slot],ws=sl.reduce((a,x)=>a+SLOT_W[x],0);
   const w=S.fs.scope==="day"?SLOT_W[slot]/ws:SLOT_W[slot];
-  const op=KP.options(slot,tg.kcal*w,B>0?B*(S.fs.scope==="day"?w:1):0);
+  const op=KP.options(slot,tg.kcal*w,B>0?B*(S.fs.scope==="day"?w:1):0,S.fs.prot);
   const i=((S.fs.idx[slot]||0)%op.length+op.length)%op.length,o=op[i];
   return {o:o,n:op.length,i:i,slot:slot};
 }
@@ -512,7 +512,7 @@ function fsHtml(){
     return b+'<p class="sub">أنهي وجبة؟</p><div class="col">'+[["b","الفطار"],["p","قبل التمرين"],["l","الغدا"],["d","العشا"],["s","سناك ومكسرات"]].map(x=>'<button class="btn big" data-act="fsSlot" data-v="'+x[0]+'">'+SLE[x[0]][0]+' '+x[1]+'</button>').join("")+'<button class="btn ghost sm" data-act="fsBack">رجوع</button></div>'}
   if(!sg.mode){
     return b+'<p class="sub">عندك ميزانية؟ اكتب كام جنيه '+(e==="day"?"لليوم كله":"للوجبة")+' وأنا أظبط الأكل عليها، أو اختار فري بادجت.</p>'
-      +'<label class="lb" for="fsB">الميزانية بالجنيه</label><input class="inp" id="fsB" type="number" inputmode="numeric" data-in="fsb" placeholder="'+(e==="day"?"مثلا: 150":"مثلا: 40")+'" value="'+esc(sg.budget||"")+'">'
+      +((e==="day"||sg.slot==="l"||sg.slot==="d")?'<p class="lb">الأساسي في الغدا والعشا (اختار واحد أو أكتر، أو سيبها لأي حاجة):</p><div class="chips">'+[["meat","لحمة"],["chicken","فراخ"],["fish","سمك"]].map(x=>'<button class="chip" aria-pressed="'+((sg.prot||[]).indexOf(x[0])>=0)+'" data-act="fsProt" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>':"")+'<label class="lb" for="fsB">الميزانية بالجنيه</label><input class="inp" id="fsB" type="number" inputmode="numeric" data-in="fsb" placeholder="'+(e==="day"?"مثلا: 150":"مثلا: 40")+'" value="'+esc(sg.budget||"")+'">'
       +'<div class="col"><button class="btn big" data-act="fsBud">طبّق الميزانية</button><button class="btn big ghost" data-act="fsFree">فري بادجت</button><button class="btn ghost sm" data-act="fsBack">رجوع</button></div>'}
   const B=sg.mode==="bud"?Number(sg.budget)||0:0,sl=e==="day"?fsSlots():[sg.slot];
   let tot={k:0,p:0,c:0,f:0,cost:0},over=false;
@@ -1355,6 +1355,7 @@ function act(name,t){
     case"fsFree":S.fs.mode="free";S.fs.idx={};drawFlow();break;
     case"fsBud":{const n=Number(S.fs.budget);if(!(n>0)){toast("اكتب الميزانية بالجنيه");break}S.fs.mode="bud";S.fs.idx={};drawFlow();break}
     case"fsCfg":S.fs.mode=null;S.fs.idx={};drawFlow();break;
+    case"fsProt":{const a=S.fs.prot=S.fs.prot||[],i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);drawFlow();break}
     case"fsSwap":S.fs.idx[v]=(S.fs.idx[v]||0)+1;drawFlow();break;
     case"fsEat":fsLog(v);break;
     case"fsEatAll":{const sl=fsSlots(),B=S.fs.mode==="bud"?Number(S.fs.budget)||0:0;
