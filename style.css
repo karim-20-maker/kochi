@@ -445,3 +445,21 @@ html[data-theme="dark"] .slc{background:var(--surface)}
 .sq .mgif{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;z-index:1;border-radius:inherit}
 .sq.suggest .sqb{z-index:2}
 .sq .mgif{object-position:48% 0}
+
+.sq .anm{position:absolute;top:0;left:50%;transform:translateX(-50%);width:92%;height:auto;overflow:visible}
+.ag-bob{animation:agbob 1.6s ease-in-out infinite;transform-origin:100px 190px}
+.ag-eo{animation:ageo 1.6s infinite}.ag-ec{opacity:0;animation:agec 1.6s infinite}
+.ag-ch{animation:agch .8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.ag-mo{animation:agmo .8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.ag-food{animation:agfd 1.6s ease-in-out infinite}
+.ag-cr circle{animation:agcr 1.6s ease-in infinite}.ag-cr circle:nth-child(2){animation-delay:.3s}.ag-cr circle:nth-child(3){animation-delay:.6s}
+.ag-sp g{animation:mtw 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.ag-sp .s2{animation-delay:.5s}.ag-sp .s3{animation-delay:.9s}
+@keyframes agbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(1.2deg)}}
+@keyframes ageo{0%,35%,100%{opacity:1}45%,85%{opacity:0}}
+@keyframes agec{0%,35%,100%{opacity:0}45%,85%{opacity:1}}
+@keyframes agch{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@keyframes agmo{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
+@keyframes agfd{0%,25%{transform:translateY(0)}40%,55%{transform:translateY(-14px)}75%,100%{transform:translateY(0)}}
+@keyframes agcr{0%,40%{opacity:0;transform:translateY(0)}55%{opacity:1}100%{opacity:0;transform:translateY(34px)}}
+@media (prefers-reduced-motion:reduce){.ag-bob,.ag-eo,.ag-ec,.ag-ch,.ag-mo,.ag-food,.ag-cr circle,.ag-sp g{animation:none}}
+.sq .anm{width:80%;top:-2%}.sq.suggest .sqb{padding-top:6px}
