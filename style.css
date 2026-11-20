@@ -18,7 +18,6 @@
   --good:#5CC9A3; --warn:#E3B04A; --bad:#F0806E; color-scheme:dark}
 
 *{box-sizing:border-box}
-html,body{direction:rtl}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.6;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-text-size-adjust:100%}
 button,input,select,textarea{font-family:inherit}
@@ -176,7 +175,7 @@ table.t td,table.t th{padding:6px 4px;border-top:1px solid var(--line);text-alig
 textarea.inp[readonly]{font-size:13px;line-height:1.5}
 a.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center}
 .tbl{width:100%;border-collapse:collapse;font-size:14px}
-.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:right}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:start}
 .tbl th{color:var(--muted);font-weight:700}
 .scroll{overflow-x:auto}
 
@@ -342,3 +341,5 @@ body.kb .app{padding-bottom:24px}
   .card.slot{border:2px solid color-mix(in srgb,var(--c,#16a34a) 45%,transparent);border-radius:22px;box-shadow:0 5px 0 color-mix(in srgb,var(--c,#16a34a) 28%,transparent)}
   .semo{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--c,#16a34a);font-size:19px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);vertical-align:middle}
 }
+.chip.ic .lgl{font-size:12px;margin-inline-start:4px}
+html[dir=ltr]{--font-display:"Inter","Segoe UI",system-ui,sans-serif;--font-body:"Inter","Segoe UI",system-ui,sans-serif}

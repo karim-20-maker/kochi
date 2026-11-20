@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-document.documentElement.dir="rtl";document.documentElement.lang="ar";
+const KI=window.KI18N||{tr:x=>x,lang:()=>"ar",locale:()=>"ar-EG",set:()=>{}};const LTR=KI.lang()==="en";
 
 /* ---------- small helpers ---------- */
 const $=(s,r)=>(r||document).querySelector(s);
@@ -275,7 +275,7 @@ function startMsgs(){
   S.unsubs.push(()=>{if(S.msgUn){S.msgUn();S.msgUn=null}});
 }
 function stopMsgs(){if(S.msgUn){S.msgUn();S.msgUn=null}S.msgsOn=0;S.msgs=[]}
-function bubbles(list,me){return list.length?'<div class="chat" id="thr">'+list.map(m=>'<div class="bub '+(m.from===me?'u':'a')+'">'+esc(m.text)+'<br><small style="opacity:.7">'+esc(new Date(m.at).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</small></div>').join("")+'</div>':'<p class="hint">مفيش رسايل لسه.</p>'}
+function bubbles(list,me){return list.length?'<div class="chat" id="thr">'+list.map(m=>'<div class="bub '+(m.from===me?'u':'a')+'">'+esc(m.text)+'<br><small style="opacity:.7">'+esc(new Date(m.at).toLocaleString(KI.locale(),{dateStyle:"short",timeStyle:"short"}))+'</small></div>').join("")+'</div>':'<p class="hint">مفيش رسايل لسه.</p>'}
 async function sendMsg(from,uid,text){
   text=(text||"").trim().slice(0,1000);if(!text||!S.fb||!S.user)return false;
   try{await msgCol(uid).add({from:from,text:text,at:Date.now()});if(from==="client"){shareSoon()}return true}
@@ -292,7 +292,7 @@ function toast(m){const h=$("#toastHost");h.innerHTML='<div class="toast" role="
 /* ---------- html bits ---------- */
 const card=(i,c,st)=>'<section class="card '+(c||"")+'"'+(st?' style="'+st+'"':"")+'>'+i+'</section>';
 const slotCard=(id,b)=>card(b,"slot","--c:"+SLE[id][1]);
-const chev=r=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(r?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")+'"/></svg>';
+const chev=r=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+((r!==LTR)?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")+'"/></svg>';
 const NAV=[["today","النهاردة",'<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
  ["food","الأكل",'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'],
  ["train","التمرين",'<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>'],
@@ -334,7 +334,7 @@ function viewToday(){
     +'<p class="hint">هدف اليوم '+tg.kcal+' سعر ('+(isTrainDay(date)?"يوم تمرين":"يوم راحة")+'). الأرقام تقريبية، المهم الاستمرار.</p>');
   const remainH=remainHtml(res,tg,date);
   const trioH='<div class="trio"><div class="tile"><span class="tl">مياه</span><div class="stp"><button class="up" data-act="water" data-v="1" aria-label="أكتر">+</button><b>'+(day.water||0)+'</b><button class="dn" data-act="water" data-v="-1" aria-label="أقل">−</button></div><span class="ts">من '+WG()+' كوباية</span></div>'
-    +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button class="up" data-act="sleep" data-v="0.5" aria-label="أكتر">+</button><b>'+(day.sleep==null?"–":day.sleep)+'</b><button class="dn" data-act="sleep" data-v="-0.5" aria-label="أقل">−</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
+    +'<div class="tile"><span class="tl">نوم</span><div class="stp"><button class="up" data-act="sleep" data-v="0.5" aria-label="أكتر">+</button><b>'+(day.sleep==null?"0":day.sleep)+'</b><button class="dn" data-act="sleep" data-v="-0.5" aria-label="أقل">−</button></div><span class="ts">ساعات (7 إلى 8)</span></div>'
     +'<div class="tile"><label class="tl" for="stepsIn">خطوات</label><input class="inp" id="stepsIn" data-in="steps" type="number" inputmode="numeric" min="0" placeholder="0" value="'+(day.steps||"")+'"><span class="ts">الهدف 8000 إلى 10000</span></div></div>';
   const main=[];(S.profile.gymDays>0?CYCLE:[]).concat((S.profile.acts||[]).map(a=>a.k)).forEach(k=>{if(main.indexOf(k)<0)main.push(k)});
   if(day.tType&&day.tType!=="rest"&&main.indexOf(day.tType)<0)main.push(day.tType);
@@ -706,7 +706,8 @@ const ICON_MOON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" str
 const ICON_SUN='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 function curTheme(){return document.documentElement.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}
 function setTheme(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("kochi-theme",t)}catch(e){}const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="dark"?"#0E1713":"#1E5B4A")}
-function utilBtns(){const d=curTheme()==="dark";return '<button class="chip ic" data-act="theme" aria-label="'+(d?"الوضع الفاتح":"الوضع الداكن")+'" title="'+(d?"الوضع الفاتح":"الوضع الداكن")+'">'+(d?ICON_SUN:ICON_MOON)+'</button>'}
+const ICON_GLOBE='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.9 5.6 3.9 9s-1.3 6.4-3.9 9c-2.6-2.6-3.9-5.6-3.9-9S9.4 5.6 12 3z"/></svg>';
+function utilBtns(){const d=curTheme()==="dark";return '<button class="chip ic" data-act="lang" aria-label="'+(LTR?"Language: switch to Arabic":"Language: switch to English")+'" title="'+(LTR?"عربي":"English")+'">'+ICON_GLOBE+'<b class="lgl">'+(LTR?"ع":"EN")+'</b></button><button class="chip ic" data-act="theme" aria-label="'+(d?"الوضع الفاتح":"الوضع الداكن")+'" title="'+(d?"الوضع الفاتح":"الوضع الداكن")+'">'+(d?ICON_SUN:ICON_MOON)+'</button>'}
 function utilBar(){return '<div class="row" style="justify-content:flex-end;margin:8px 0;gap:8px">'+utilBtns()+'</div>'}
 function modeBar(){
   if(S.auth!=="in"||!S.user)return "";
@@ -740,7 +741,7 @@ function viewClients(){
     h+=card('<div class="row" style="justify-content:space-between;align-items:center"><h2>'+esc(c.name||"مشترك")+'</h2><span class="tag" style="background:'+(t?'var(--accent-soft)':'var(--surface2)')+'">'+(t?'سجّل النهاردة':(ds.length?'آخر تسجيل '+esc(ds.map(x=>x.d).sort().pop().slice(5)):'اتربط، لسه مبدأش يسجل'))+'</span></div>'
       +'<p class="sub">'+esc((GOALS[c.goal]||GOALS.cut).t)+' | الوزن '+esc(c.w||"-")+' كجم</p>'
       +(t?'<div class="grid2"><div>سعرات: <b>'+t.k+'</b> / '+c.tk+'</div><div>بروتين: <b>'+t.p+'</b> / '+c.tp+'</div><div>مياه: <b>'+t.w+'</b> / '+c.wg+'</div><div>نوم: <b>'+(t.s==null?"-":t.s)+'</b> | خطوات '+t.st+'</div><div>تمرين: <b>'+(t.t?(TT[t.t]||t.t):"لسه")+'</b></div></div>':'<p class="hint">'+(n?'مسجلش حاجة النهاردة لسه.':'مفيش أي تسجيل لحد دلوقتي. هيظهر هنا أول ما يسجل أول يوم.')+'</p>')
-      +'<p class="hint">متوسط آخر '+n+' أيام مسجلة: '+avgK+' سعر | '+avgP+' جم بروتين. آخر تحديث: '+esc(new Date(c.updated||0).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}))+'</p>'
+      +'<p class="hint">متوسط آخر '+n+' أيام مسجلة: '+avgK+' سعر | '+avgP+' جم بروتين. آخر تحديث: '+esc(new Date(c.updated||0).toLocaleString(KI.locale(),{dateStyle:"short",timeStyle:"short"}))+'</p>'
       +(unread?'<p class="msg">رسالة جديدة: '+esc(c.lastMsg.text)+'</p>':'')+'<div class="row"><button class="btn ghost sm" data-act="cOpen" data-v="'+esc(c.id)+'">'+(open?"إخفاء الأيام":"تفاصيل 7 أيام")+'</button><button class="btn sm" data-act="thOpen" data-v="'+esc(c.id)+'">'+(S.thId===c.id?"إخفاء الرسايل":"رسايل")+(unread?" (جديد)":"")+'</button></div>'+(S.thId===c.id?'<div>'+bubbles(S.thMsgs||[],"coach")+'<textarea class="inp" id="thIn" data-in="thd" placeholder="اكتب رد للعميل">'+esc(S.ui.thDraft||"")+'</textarea><div class="row"><button class="btn sm" data-act="thSend" data-v="'+esc(c.id)+'">ابعت</button></div></div>':"")
       +(open?'<div class="scroll"><table class="tbl"><thead><tr><th>اليوم</th><th>سعرات</th><th>بروتين</th><th>مياه</th><th>نوم</th><th>تمرين</th></tr></thead><tbody>'+ds.map(x=>'<tr><td>'+esc(x.d.slice(5))+'</td><td>'+x.k+'</td><td>'+x.p+'</td><td>'+x.w+'</td><td>'+(x.s==null?"-":x.s)+'</td><td>'+(x.t?esc(TT[x.t]||x.t):"-")+'</td></tr>').join("")+'</tbody></table></div>':""));
   });
@@ -766,7 +767,7 @@ function applyPendingCoach(){
 }
 const chatgptUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https://chatgpt.com/?q="+q:"https://chatgpt.com/"};
 const claudeUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https://claude.ai/new?q="+q:"https://claude.ai/new"};
-function promptModal(title,text,note){S.flow={k:"prompt",title:title,text:text,note:note||""};drawFlow()}
+function promptModal(title,text,note){S.flow={k:"prompt",title:title,text:KI.tr(text),note:note||""};drawFlow()}
 function promptHtml(f){
   const long=encodeURIComponent(f.text).length>5500,words=f.text.split(/\s+/).length;
   return '<h2 id="flT">'+esc(f.title)+'</h2>'
@@ -1202,6 +1203,7 @@ function act(name,t){
     case"coachShare":{const cd=S.profile.asCoach.code;if(!cd){toast("اعمل الكود الأول");break}const l=SITE+"?coach="+cd,tx="اشترك معايا في كوتشي. كودي: "+cd;if(navigator.share)navigator.share({title:"كوتشي",text:tx,url:l}).catch(()=>{});else copyText(tx+"\n"+l).then(()=>toast("اتنسخ"));break}
     case"askGpt":sendChat();break
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText(S.date);window.open(waUrl(mc.p,t),"_blank","noopener");break}
+    case"lang":KI.set(LTR?"ar":"en");break;
     case"theme":setTheme(curTheme()==="dark"?"light":"dark");render();break;
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
