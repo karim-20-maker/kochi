@@ -761,16 +761,20 @@ const chatgptUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https:
 const claudeUrl=t=>{const q=encodeURIComponent(t);return q.length<=5500?"https://claude.ai/new?q="+q:"https://claude.ai/new"};
 function promptModal(title,text,note){S.flow={k:"prompt",title:title,text:text,note:note||""};drawFlow()}
 function promptHtml(f){
-  const long=encodeURIComponent(f.text).length>5500;
-  return '<h2 id="flT">'+esc(f.title)+'</h2><p class="sub">'+esc(f.note||(long?"البرومبت طويل شوية، فهننسخه وتفتح ChatGPT وتلصقه (اضغط مطوّلا على خانة الكتابة ثم لصق).":"دوس الزرار: بينسخ البرومبت ويفتح ChatGPT وهو متكتب. ابعته وخلاص."))+'</p>'
-    +'<textarea class="inp" id="promptTa" readonly rows="7">'+esc(f.text)+'</textarea>'
-    +'<a class="btn" href="'+chatgptUrl(f.text)+'" target="_blank" rel="noopener" data-act="copyPrompt">انسخ وافتح ChatGPT</a>'
-    +'<div class="row"><button class="btn ghost sm" data-act="copyPrompt">نسخ بس</button><a class="btn ghost sm" href="'+claudeUrl(f.text)+'" target="_blank" rel="noopener" data-act="copyPrompt">Claude</a><a class="btn ghost sm" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-act="copyPrompt">Gemini</a></div>'
+  const long=encodeURIComponent(f.text).length>5500,words=f.text.split(/\s+/).length;
+  return '<h2 id="flT">'+esc(f.title)+'</h2>'
+    +'<p class="sub">'+(long?"البرومبت فيه بياناتك فطويل شوية. دوس الزرار، هننسخه ونفتحلك ChatGPT، وإنت تلصقه في الشات وتبعت.":"دوس الزرار: ChatGPT هيفتح وسؤالك متكتب فيه جاهز، وإنت تبعت بس.")+'</p>'
+    +(f.note?'<p class="hint">'+esc(f.note)+'</p>':'')
+    +'<a class="btn big" id="pmGo" href="'+chatgptUrl(f.text)+'" target="_blank" rel="noopener" data-act="copyPrompt" data-v="'+(long?"paste":"auto")+'">افتح ChatGPT</a>'
+    +'<p class="pmstat" id="pmStat" role="status" aria-live="polite"></p>'
+    +'<p class="lb">أو في تطبيق تاني (بننسخ البرومبت وإنت تلصقه):</p>'
+    +'<div class="row"><a class="btn ghost sm" href="'+claudeUrl(f.text)+'" target="_blank" rel="noopener" data-act="copyPrompt" data-v="'+(long?"paste":"auto")+'">Claude</a><a class="btn ghost sm" href="https://gemini.google.com/app" target="_blank" rel="noopener" data-act="copyPrompt" data-v="paste">Gemini</a><button class="btn ghost sm" data-act="copyPrompt" data-v="only">نسخ بس</button></div>'
+    +'<details class="pv"><summary>شوف البرومبت ('+words+' كلمة)</summary><textarea class="inp" id="promptTa" readonly rows="8">'+esc(f.text)+'</textarea></details>'
     +'<button class="btn ghost" data-act="flowClose">إغلاق</button>';
 }
 async function copyText(t){
   try{await navigator.clipboard.writeText(t);return true}catch(e){}
-  try{const ta=$("#promptTa");if(ta){ta.removeAttribute("readonly");ta.select();ta.setSelectionRange(0,ta.value.length);const ok=document.execCommand("copy");ta.setAttribute("readonly","");return ok}}catch(e){}
+  try{const ta=document.createElement("textarea");ta.value=t;ta.setAttribute("readonly","");ta.style.cssText="position:fixed;top:0;left:0;opacity:0;font-size:16px";document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);const ok=document.execCommand("copy");ta.remove();return ok}catch(e){}
   return false;
 }
 function photoCoach(){
@@ -1189,9 +1193,7 @@ function act(name,t){
     case"coachOff":S.profile.asCoach=null;saveProfile();render();break;
     
     case"coachShare":{const cd=S.profile.asCoach.code;if(!cd){toast("اعمل الكود الأول");break}const l=SITE+"?coach="+cd,tx="اشترك معايا في كوتشي. كودي: "+cd;if(navigator.share)navigator.share({title:"كوتشي",text:tx,url:l}).catch(()=>{});else copyText(tx+"\n"+l).then(()=>toast("اتنسخ"));break}
-    case"askGpt":{const t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}const full=rulesText()+"\n\n"+ctxText()+"\n\nسؤالي: "+t;
-      copyText(full);window.open(chatgptUrl(full),"_blank","noopener");
-      promptModal("سؤالك اتنسخ",full,"اتنسخ سؤالك ومعاه بياناتك. في ChatGPT دوس مطوّلا على خانة الكتابة واختار لصق، وابعت. لو اللصق ماشتغلش دوس \"نسخ بس\" تحت.");break}
+    case"askGpt":sendChat();break
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText(S.date);window.open(waUrl(mc.p,t),"_blank","noopener");break}
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
@@ -1261,7 +1263,7 @@ function act(name,t){
       const id=vw.id;S.viewer=null;drawViewer();S.photos=S.photos.filter(p=>p.id!==id);
       idbDel(id).catch(()=>toast("مقدرتش أمسح الصورة"));render();break}
     case"coach":promptModal(v==="day"?"تقييم يومك":v==="rest"?"الباقي من يومك":"تقييم أسبوعك",coachPrompt(v));break;
-    case"copyPrompt":if(S.flow&&S.flow.text)copyText(S.flow.text).then(ok=>toast(ok?"اتنسخ البرومبت. الصقه في الشات":"انسخ البرومبت من الخانة يدوي"));break;
+    case"copyPrompt":if(S.flow&&S.flow.text)copyText(S.flow.text).then(ok=>{const el=$("#pmStat");if(!el)return;el.className="pmstat "+(ok?"ok":"bad");el.textContent=!ok?"مقدرناش ننسخ لوحدنا. افتح \"شوف البرومبت\" وانسخه بإيدك.":v==="only"?"✓ اتنسخ البرومبت. الصقه في أي شات.":v==="paste"?"✓ اتنسخ. في الشات دوس مطوّلا على خانة الكتابة واختار لصق، وابعت.":"✓ اتفتح. ولو الخانة فاضية، البرومبت منسوخ فالصقه."});break
     case"voiceParse":voiceParse();break;
     case"photoCoach":photoCoach();break;
     case"sendChat":sendChat();break;

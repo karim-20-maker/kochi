@@ -322,3 +322,8 @@ body.kb .app{padding-bottom:24px}
 .hubfoot .cta.night{margin-top:0}
 @media (max-width:999px){.cta{margin-top:8px}
 }
+
+.btn.big{width:100%;min-height:54px;font-size:17px;font-weight:800;justify-content:center;margin-top:6px}
+.pmstat{min-height:22px;font-size:14px;line-height:1.5;margin:8px 2px 4px;color:var(--muted)}
+.pmstat.ok{color:#15803d;font-weight:700}.pmstat.bad{color:#b91c1c;font-weight:700}
+.pv{margin:12px 0}.pv summary{cursor:pointer;color:var(--muted);font-size:13.5px;padding:6px 0}
