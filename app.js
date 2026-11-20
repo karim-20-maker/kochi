@@ -290,7 +290,8 @@ let toastT=null;
 function toast(m){const h=$("#toastHost");h.innerHTML='<div class="toast" role="status">'+esc(m)+'</div>';clearTimeout(toastT);toastT=setTimeout(()=>{h.innerHTML=""},2600)}
 
 /* ---------- html bits ---------- */
-const card=(i,c)=>'<section class="card '+(c||"")+'">'+i+'</section>';
+const card=(i,c,st)=>'<section class="card '+(c||"")+'"'+(st?' style="'+st+'"':"")+'>'+i+'</section>';
+const slotCard=(id,b)=>card(b,"slot","--c:"+SLE[id][1]);
 const chev=r=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(r?"M9 6l6 6-6 6":"M15 6l-6 6 6 6")+'"/></svg>';
 const NAV=[["today","النهاردة",'<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/>'],
  ["food","الأكل",'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'],
@@ -365,7 +366,7 @@ function viewToday(){
       slotsH.push({id,t:s[1],html:drinksCard(day,res,logged,sk,entries),hub:mcardH(SLE.m[0],SLE.m[1],"مشروبات",logged.length?r0(sk)+" سعر اتسجلت":"المياه من خانة المياه",hb,'<button class="btn sm ghost" data-act="openSheet" data-v="m">+ مشروب تاني</button>')});return}
     if(id==="p"&&actv.indexOf("p")<0&&!logged.length)return;
     const opts=plan[id]||[];
-    let b='<div class="slot-h"><h3>'+s[1]+'</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
+    let b='<div class="slot-h"><h3><span class="semo" aria-hidden="true">'+SLE[id][0]+'</span> '+s[1]+'</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
     if(!logged.length){
       if(id==="b"){
         if(res.passed.indexOf("b")>=0)b+='<p class="sub">فات ميعاده؟ لو فطرت سجّله من هنا.</p>';
@@ -391,7 +392,7 @@ function viewToday(){
     const hbody=sugOn?'<button class="btn ghost sm" data-act="sugClose">← رجوع</button>'+sugH
       :(logged.length?entries:'<div class="mempty"><span aria-hidden="true">'+SLE[id][0]+'</span><p>'+(res.passed.indexOf(id)>=0?'فات ميعادها. لو أكلت سجّلها.':'لسه ماسجلتش.')+'</p>'+(bd2?'<p class="sub">ميزانية تقريبية: '+r0(bd2.k)+' سعر و'+r0(bd2.p)+' جم بروتين</p>':'')+'</div>');
     const hacts=(BUILD[id]?'<button class="btn sm" data-act="openSheet" data-v="'+id+'" data-t="build">يلا نطبخ</button>':'')+'<button class="btn sm ghost" data-act="openSheet" data-v="'+id+'" data-t="list">+ أضف أكل</button>'+(sugH&&!sugOn?'<button class="btn sm ghost" data-act="sugOpen" data-v="'+id+'">💡 اقتراحات</button>':'');
-    slotsH.push({id,t:s[1],html:card(b,"slot"),hub:mcardH(SLE[id][0],SLE[id][1],s[1],logged.length?r0(sk)+" سعر اتسجلت":(bd2?"ميزانية "+r0(bd2.k)+" سعر":"—"),hbody,sugOn?"":hacts)});
+    slotsH.push({id,t:s[1],html:slotCard(id,b),hub:mcardH(SLE[id][0],SLE[id][1],s[1],logged.length?r0(sk)+" سعر اتسجلت":(bd2?"ميزانية "+r0(bd2.k)+" سعر":"—"),hbody,sugOn?"":hacts)});
   });
   const moonSvg='<svg viewBox="0 0 64 64" aria-hidden="true"><path class="mn" d="M44 8a26 26 0 1 0 12 38A22 22 0 0 1 44 8z" fill="#fde68a"/><path d="M26 34q3 3 6 0M38 36q3 3 6 0" stroke="#92400e" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M33 44q3 2.4 6 0" stroke="#92400e" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="23" cy="40" r="3" fill="#f9a8d4" opacity=".7"/></svg>';
   const dumbSvg='<svg viewBox="0 0 64 64" aria-hidden="true"><g class="db"><rect x="16" y="26" width="32" height="6" rx="3" fill="#475569"/><rect x="8" y="17" width="8" height="24" rx="3" fill="#f97316"/><rect x="48" y="17" width="8" height="24" rx="3" fill="#f97316"/><rect x="3" y="22" width="5" height="14" rx="2" fill="#475569"/><rect x="56" y="22" width="5" height="14" rx="2" fill="#475569"/></g><path class="cord" d="M32 32C22 35 22 39 32 39C42 39 42 43 32 43C22 43 22 47 32 47C42 47 42 51 32 51C22 51 22 55 32 55" stroke="#0f172a" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>';
@@ -461,12 +462,12 @@ function planCard(pm,items,m,o){
 const QD=[["coffee","قهوة أو شاي بدون سكر"],["tea_s","شاي بسكر"],["nes3","نسكافيه 3 في 1"],["latte","لاتيه"],["cola_z","مشروب زيرو"],["cola","مشروب غازي"],["juice","عصير"]];
 function drinksCard(day,res,logged,sk,entries){
   const w=day.water||0;
-  let b='<div class="slot-h"><h3>مشروبات</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
+  let b='<div class="slot-h"><h3><span class="semo" aria-hidden="true">'+SLE.m[0]+'</span> مشروبات</h3><span class="sub num">'+(logged.length?r0(sk)+" سعر":"")+'</span></div>'+entries;
   b+='<p class="sub">مياه: '+w+' من '+WG()+' كوباية'+(w<WG()?' (فاضل '+(WG()-w)+')':' ✓')+'. بتتسجّل من خانة المياه فوق.</p>';
   if(res.shake)b+='<div class="plan"><span class="tag">مقترح</span><span class="pn">شيك بروتين</span><div class="pm num">سكوب واي في ميه أو لبن: 120 سعر · 24 بروتين. بيكمّل بروتين النهاردة.</div><div class="row"><button class="btn sm" data-act="quickDrink" data-v="shake">شربته</button></div></div>';
   b+='<div class="chips">'+QD.map(x=>'<button class="chip" data-act="quickDrink" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
   b+='<div class="row"><button class="btn sm ghost" data-act="openSheet" data-v="m">+ مشروب تاني</button></div>';
-  return card(b,"slot");
+  return slotCard("m",b);
 }
 function remainHtml(res,tg,date){
   if(date<todayStr())return "";
@@ -701,10 +702,16 @@ function consentBanner(){
   const o=S.ui.consent;if(!o)return "";
   return card('<h2>الكوتش '+esc(o.n)+' عايز يتابعك</h2><p class="sub">لو وافقت، هيشوف: اسمك وهدفك ووزنك، وإجماليات كل يوم لآخر 7 أيام (سعرات، بروتين، كارب، دهون، مياه، نوم، خطوات، تمرين). مش هيشوف تفاصيل وجباتك ولا صورك. تقدر تفصله في أي وقت من التقدم، وبمجرد الفصل بيفقد الوصول.</p><div class="row"><button class="btn" data-act="consentYes">موافق</button><button class="btn ghost" data-act="consentNo">لأ</button></div>');
 }
+const ICON_MOON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.7 6.7 0 0 0 9.8 9.8z"/></svg>';
+const ICON_SUN='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+function curTheme(){return document.documentElement.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}
+function setTheme(t){document.documentElement.setAttribute("data-theme",t);try{localStorage.setItem("kochi-theme",t)}catch(e){}const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="dark"?"#0E1713":"#1E5B4A")}
+function utilBtns(){const d=curTheme()==="dark";return '<button class="chip ic" data-act="theme" aria-label="'+(d?"الوضع الفاتح":"الوضع الداكن")+'" title="'+(d?"الوضع الفاتح":"الوضع الداكن")+'">'+(d?ICON_SUN:ICON_MOON)+'</button>'}
+function utilBar(){return '<div class="row" style="justify-content:flex-end;margin:8px 0;gap:8px">'+utilBtns()+'</div>'}
 function modeBar(){
   if(S.auth!=="in"||!S.user)return "";
   const co=S.profile.asCoach,nn=Object.keys(S.cNew||{}).length;
-  return '<div class="row" style="justify-content:space-between;align-items:center;margin:8px 0;gap:8px"><div class="seg">'+(co?[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+(x[0]==="coach"&&nn?" ("+nn+")":"")+'</button>').join(""):'<span class="hint">'+esc(S.user.email||"")+'</span>')+'</div><button class="chip" data-act="signOut">تسجيل خروج</button></div>';
+  return '<div class="row" style="justify-content:space-between;align-items:center;margin:8px 0;gap:8px"><div class="seg">'+(co?[["me","أنا"],["coach","عملائي"]].map(x=>'<button class="chip" aria-pressed="'+((S.mode||"me")===x[0])+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+(x[0]==="coach"&&nn?" ("+nn+")":"")+'</button>').join(""):'<span class="hint">'+esc(S.user.email||"")+'</span>')+'</div><div class="row" style="gap:6px;flex-wrap:nowrap">'+utilBtns()+'<button class="chip" data-act="signOut">تسجيل خروج</button></div></div>';
 }
 function startClients(){
   if(!S.fb||!S.user||S.clientsOn)return;S.clientsOn=1;
@@ -1195,6 +1202,7 @@ function act(name,t){
     case"coachShare":{const cd=S.profile.asCoach.code;if(!cd){toast("اعمل الكود الأول");break}const l=SITE+"?coach="+cd,tx="اشترك معايا في كوتشي. كودي: "+cd;if(navigator.share)navigator.share({title:"كوتشي",text:tx,url:l}).catch(()=>{});else copyText(tx+"\n"+l).then(()=>toast("اتنسخ"));break}
     case"askGpt":sendChat();break
     case"waSend":{const mc=S.profile.myCoach;if(!mc)break;let t;if(v==="ask"){t=(S.ui.draft||"").trim();if(!t){toast("اكتب سؤالك الأول");break}t=(S.profile.name||"متدرب")+": "+t}else t=waReportText(S.date);window.open(waUrl(mc.p,t),"_blank","noopener");break}
+    case"theme":setTheme(curTheme()==="dark"?"light":"dark");render();break;
     case"signOut":if(S.fb)S.fb.auth.signOut();break;
     case"exportData":{const blob=new Blob([JSON.stringify({profile:S.profile,days:S.days,body:S.body},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kochi-data.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);break}
     case"wipe":S.ui.wipe=1;render();break;
@@ -1492,6 +1500,7 @@ function render(keep){
   else if(S.auth==="in"&&S.profile.asCoach&&S.mode==="coach"){body=modeBar()+viewClients();nav=false;wide=true}
   else{applyPendingCoach();const v={today:viewToday,food:viewFood,train:viewTrain,prog:viewProgress,coach:viewCoach}[S.tab]||viewToday;body=modeBar()+consentBanner()+v();wide=true;
     if(S.auth==="local"&&S.tab==="today")body='<div class="card"><p class="sub">وضع تجريبي: بياناتك محفوظة على الجهاز ده بس. لتسجيل الدخول والتزامن، ضيف إعدادات Firebase.</p></div>'+body}
+  if(body.indexOf('data-act="theme"')<0)body=utilBar()+body;
   $("#app").innerHTML='<main class="app'+(wide?' wide':'')+'">'+body+'</main>'+(nav?navHtml():"");
   S.pending=false;
   carRestore();

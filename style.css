@@ -327,3 +327,18 @@ body.kb .app{padding-bottom:24px}
 .pmstat{min-height:22px;font-size:14px;line-height:1.5;margin:8px 2px 4px;color:var(--muted)}
 .pmstat.ok{color:#15803d;font-weight:700}.pmstat.bad{color:#b91c1c;font-weight:700}
 .pv{margin:12px 0}.pv summary{cursor:pointer;color:var(--muted);font-size:13.5px;padding:6px 0}
+
+.chip.ic{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:0 10px}
+/* mobile: compact trackers, same cartoony language as the desktop hub */
+@media (max-width:999px){
+  .trio{gap:8px}
+  .tile{padding:12px 8px 10px;border-radius:20px;gap:8px;background:var(--surface2);border-color:transparent}
+  .tile .tl{font-size:13px;font-weight:700;color:var(--muted)}
+  .stp{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+  .stp b{grid-column:1/-1;order:-1;font-size:26px;line-height:1.1;padding:0}
+  .stp button{min-height:40px;font-size:22px;border-radius:12px;padding:0}
+  .tile .inp{width:100%;min-height:44px;font-size:18px}
+  .tile .ts{font-size:11.5px;line-height:1.3}
+  .card.slot{border:2px solid color-mix(in srgb,var(--c,#16a34a) 45%,transparent);border-radius:22px;box-shadow:0 5px 0 color-mix(in srgb,var(--c,#16a34a) 28%,transparent)}
+  .semo{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--c,#16a34a);font-size:19px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);vertical-align:middle}
+}
