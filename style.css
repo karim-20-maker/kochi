@@ -343,3 +343,7 @@ body.kb .app{padding-bottom:24px}
 }
 .chip.ic .lgl{font-size:12px;margin-inline-start:4px}
 html[dir=ltr]{--font-display:"Inter","Segoe UI",system-ui,sans-serif;--font-body:"Inter","Segoe UI",system-ui,sans-serif}
+/* suggest / hacks */
+.viewer .col{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.viewer .plan{margin:10px 0}
+.viewer ul.pl,.viewer ol.pl{margin:6px 0;padding-inline-start:20px}

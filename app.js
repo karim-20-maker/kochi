@@ -487,9 +487,61 @@ function remToast(date){
 }
 
 /* ---------- FOOD ---------- */
+
+/* ---------- suggest food / prices / diet hacks (static data in prices.js) ---------- */
+const KPL=t=>window.KP?KP.L(t):t[0];
+function fsSlots(){const d=todayStr();return isTrainDay(d)?["b","p","l","d","s"]:["b","l","d","s"]}
+function fsCard(slot,B){
+  const tg=targetsFor(todayStr()),sl=S.fs.scope==="day"?fsSlots():[slot],ws=sl.reduce((a,x)=>a+SLOT_W[x],0);
+  const w=S.fs.scope==="day"?SLOT_W[slot]/ws:SLOT_W[slot];
+  const op=KP.options(slot,tg.kcal*w,B>0?B*(S.fs.scope==="day"?w:1):0);
+  const i=((S.fs.idx[slot]||0)%op.length+op.length)%op.length,o=op[i];
+  return {o:o,n:op.length,i:i,slot:slot};
+}
+function fsItems(o){return '<ul class="pl">'+o.items.map(x=>'<li>'+esc(KP.itemText(x))+' <span class="sub">· '+r0(x.cost)+' جنيه</span></li>').join("")+'</ul>'}
+function fsHtml(){
+  const sg=S.fs,e=sg.scope,cl='<button class="btn ghost sm" data-act="flowClose">إغلاق</button>';
+  let b='<h2 id="flT">اقترحلي أكل</h2>';
+  if(!e){
+    return b+'<p class="sub">تحب أقترح لك إيه؟ الأسعار والقيم تقريبية على سوق مصر ('+esc(KPL(KP.DATE))+').</p><div class="col"><button class="btn big" data-act="fsScope" data-v="meal">وجبة واحدة</button><button class="btn big" data-act="fsScope" data-v="day">اليوم كله</button>'+cl+'</div>'}
+  if(e==="meal"&&!sg.slot){
+    return b+'<p class="sub">أنهي وجبة؟</p><div class="col">'+[["b","الفطار"],["p","قبل التمرين"],["l","الغدا"],["d","العشا"],["s","سناك ومكسرات"]].map(x=>'<button class="btn big" data-act="fsSlot" data-v="'+x[0]+'">'+SLE[x[0]][0]+' '+x[1]+'</button>').join("")+'<button class="btn ghost sm" data-act="fsBack">رجوع</button></div>'}
+  if(!sg.mode){
+    return b+'<p class="sub">عندك ميزانية؟ اكتب كام جنيه '+(e==="day"?"لليوم كله":"للوجبة")+' وأنا أظبط الأكل عليها، أو اختار فري بادجت.</p>'
+      +'<label class="lb" for="fsB">الميزانية بالجنيه</label><input class="inp" id="fsB" type="number" inputmode="numeric" data-in="fsb" placeholder="'+(e==="day"?"مثلا: 150":"مثلا: 40")+'" value="'+esc(sg.budget||"")+'">'
+      +'<div class="col"><button class="btn big" data-act="fsBud">طبّق الميزانية</button><button class="btn big ghost" data-act="fsFree">فري بادجت</button><button class="btn ghost sm" data-act="fsBack">رجوع</button></div>'}
+  const B=sg.mode==="bud"?Number(sg.budget)||0:0,sl=e==="day"?fsSlots():[sg.slot];
+  let tot={k:0,p:0,c:0,f:0,cost:0},over=false;
+  const cards=sl.map(s=>{const c=fsCard(s,B),o=c.o;tot.k+=o.k;tot.p+=o.p;tot.c+=o.c;tot.f+=o.f;tot.cost+=o.cost;if(o.over)over=true;
+    return '<div class="plan"><span class="tag">'+SLE[s][0]+' '+esc((SLOTS.find(x=>x[0]===s)||[0,""])[1])+'</span><span class="pn">'+esc(KPL(o.m[1]))+'</span>'+fsItems(o)
+      +'<div class="pm num">'+r0(o.k)+' سعر · '+r0(o.p)+' بروتين · '+r0(o.c)+' كارب · '+r0(o.f)+' دهون · '+r0(o.cost)+' جنيه</div>'
+      +'<div class="row"><button class="btn sm" data-act="fsEat" data-v="'+s+'">سجّلها</button>'+(c.n>1?'<button class="btn ghost sm" data-act="fsSwap" data-v="'+s+'">غيّر</button>':'')+'</div></div>'}).join("");
+  b+='<p class="sub">'+(B>0?'الميزانية: '+r0(B)+' جنيه '+(e==="day"?"لليوم":"للوجبة")+'. ':'فري بادجت. ')+'الأوزان نيّة قبل الطبخ، والأسعار تقريبية ('+esc(KPL(KP.DATE))+').</p>'+cards;
+  if(e==="day")b+='<div class="plan"><span class="pn">إجمالي اليوم</span><div class="pm num">'+r0(tot.k)+' سعر · '+r0(tot.p)+' بروتين · '+r0(tot.c)+' كارب · '+r0(tot.f)+' دهون · '+r0(tot.cost)+' جنيه</div></div><button class="btn" data-act="fsEatAll">سجّل اليوم كله</button>';
+  if(over)b+='<p class="hint">الميزانية ضيقة على الوجبة دي، ده أرخص اختيار موجود. زوّد الميزانية شوية أو غيّر الوجبة.</p>';
+  else if(B>0&&e==="day"&&tot.cost>B*1.05)b+='<p class="hint">الإجمالي زاد عن ميزانيتك شوية بسبب تقريب الكميات. جرّب "غيّر" على وجبة.</p>';
+  return b+'<div class="row"><button class="btn ghost sm" data-act="fsCfg">غيّر الميزانية</button>'+cl+'</div>'}
+function fsLog(slot){const B=S.fs.mode==="bud"?Number(S.fs.budget)||0:0,o=fsCard(slot,B).o;
+  addMeal(todayStr(),slot,{name:KPL(o.m[1]),q:o.items.map(x=>KP.itemText(x)).join("، "),k:Math.round(o.k),p:Math.round(o.p*10)/10,c:Math.round(o.c*10)/10,f:Math.round(o.f*10)/10})}
+function pricesCard(){
+  let h='<h2>أسعار السوق</h2><p class="sub">أسعار تقريبية للتجزئة في مصر ('+esc(KPL(KP.DATE))+') من نشرات الأسعار. بتختلف حسب المنطقة والمحل، والعلامة * معناها تقدير مش سعر منشور.</p>';
+  KP.CATS.forEach((c,ci)=>{
+    const rows=Object.keys(KP.P).map(k=>KP.P[k]).filter(x=>x.cat===ci).map(x=>'<li>'+esc(KPL(x.n))+': <b class="num">'+r0(x.kg)+'</b> جنيه/كجم'+(x.e?' *':'')+(x.u?' (حوالي '+r0(x.kg*x.ug/1000*10)/10+' جنيه لل'+esc(KPL(x.u))+')':'')+'</li>').join("")
+      +KP.REF.filter(r=>r[0]===ci).map(r=>'<li>'+esc(KPL([r[1],r[2]]))+': <b class="num">'+esc(KPL([r[3],r[4]]))+'</b></li>').join("");
+    h+=det("pr"+ci,esc(KPL(c)),'<ul class="pl">'+rows+'</ul>')});
+  return h}
+function hackCard(i){const x=KP.H[i];
+  return det("hk"+i,esc(KPL(x.n))+' <span class="sub">· '+x.k+' سعر · '+x.p+' بروتين</span>',
+    '<p class="sub">الوقت: '+esc(KPL(x.t))+'. للحصة: '+x.k+' سعر · '+x.p+' بروتين · '+x.c+' كارب · '+x.f+' دهون (تقريبي)</p><p class="lb">المكونات:</p><ul class="pl">'+x.i.map(a=>'<li>'+esc(KPL(a))+'</li>').join("")+'</ul><p class="lb">الطريقة:</p><ol class="pl">'+x.s.map(a=>'<li>'+esc(KPL(a))+'</li>').join("")+'</ol>'
+    +(x.nt?'<p class="hint">'+esc(KPL(x.nt))+'</p>':'')+'<div class="row"><button class="btn sm" data-act="hackEat" data-v="'+i+'">سجّلها سناك</button></div>')}
+function sweetCard(){return '<h2>دليل المحليات</h2><p class="sub">إيه اللي بيحلّي من غير سكر، وإزاي تستخدمه.</p>'+KP.SWT.map((x,i)=>det("sw"+i,esc(KPL(x.n)),'<p>'+esc(KPL(x.b))+'</p>')).join("")}
 function viewFood(){
   const SL={b:"الفطار",l:"الغدا",p:"قبل التمرين",d:"العشا",s:"سناك"};
   let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">وجباتك المفضلة وأصنافك الخاصة ونصايح سريعة.</p></div></header>';
+  h+=card('<h2>اقترحلي أكل</h2><p class="sub">وجبة أو يوم كامل، بميزانية أو فري بادجت، بالسعرات والبروتين والتكلفة على سوق مصر.</p><button class="btn big" data-act="fsOpen">اقترحلي</button>');
+  h+=card('<h2>هاكرز الدايت</h2><p class="sub">وصفات دايت حلوة بسعرات قليلة: سحلب وجيلي وجيلاتي وغيرهم.</p>'+KP.H.map((_,i)=>hackCard(i)).join(""));
+  h+=card(sweetCard());
+  h+=card(pricesCard());
   let fv="";
   Object.keys(SL).forEach(sl=>{(favsOf(sl)).forEach((f,i)=>{fv+='<div class="ent"><div class="nm"><b>'+esc(f.n)+'</b><span>'+SL[sl]+' · '+r0(f.k)+' سعر · '+r0(f.p)+' بروتين</span></div><button class="x" data-act="favDel" data-s="'+sl+'" data-v="'+i+'" aria-label="مسح">×</button></div>'})});
   h+=card('<h2>وجباتي المفضلة</h2><p class="sub">لما تبني وجبة من "يلا نطبخ" علّم على "احفظها في مفضلتي"، وهتظهر لك جاهزة بزرار "كلتها" في نفس الوجبة. الفطار المفضل بيحل مكان الاقتراحات العادية.</p>'+(fv||'<p class="hint">لسه مفيش وجبات محفوظة.</p>'));
@@ -1102,6 +1154,7 @@ function drawFlow(){
   if(f.k==="report")b=reportHtml(f.date);
   else if(f.k==="brief")b=briefHtml(f.date,f.slept);
   else if(f.k==="prompt")b=promptHtml(f);
+  else if(f.k==="sug")b=fsHtml();
   else{const sl=S.profile.sl||{};b='<h2 id="flT">صحيت؟</h2><p class="sub">'+(sl.at?'دخلت تنام الساعة '+esc(hhmm(new Date(sl.at)))+'. ':'')+'لو صحيت هعرض لك خطة اليوم وأرجّع التنبيهات.</p><div class="row"><button class="btn" data-act="wakeYes">اه صحيت</button><button class="btn ghost" data-act="wakeNo">لا، لسه نايم</button></div>'}
   h.innerHTML='<div class="ov mid"'+(f.k==="wake"?"":' data-act="flowClose"')+'><div class="viewer" role="dialog" aria-modal="true" aria-labelledby="flT">'+b+'</div></div>';
   const v=h.querySelector(".viewer");if(v)v.scrollTop=0;
@@ -1290,6 +1343,17 @@ function act(name,t){
       mutQuiet(d,x=>{x.closed=true;x.sleepAt=hhmm(n)});
       S.profile.sl={asleep:true,day:d,at:n.getTime()};saveProfile();
       S.rmOpen=null;drawRem();S.wakeAsked=true;S.flow={k:"report",date:d};drawFlow();render();break}
+    case"fsOpen":S.fs={idx:{}};S.flow={k:"sug"};drawFlow();break;
+    case"fsScope":S.fs.scope=v;S.fs.slot=null;S.fs.mode=null;drawFlow();break;
+    case"fsSlot":S.fs.slot=v;drawFlow();break;
+    case"fsBack":if(S.fs.mode)S.fs.mode=null;else if(S.fs.slot)S.fs.slot=null;else S.fs.scope=null;drawFlow();break;
+    case"fsFree":S.fs.mode="free";S.fs.idx={};drawFlow();break;
+    case"fsBud":{const n=Number(S.fs.budget);if(!(n>0)){toast("اكتب الميزانية بالجنيه");break}S.fs.mode="bud";S.fs.idx={};drawFlow();break}
+    case"fsCfg":S.fs.mode=null;S.fs.idx={};drawFlow();break;
+    case"fsSwap":S.fs.idx[v]=(S.fs.idx[v]||0)+1;drawFlow();break;
+    case"fsEat":fsLog(v);break;
+    case"fsEatAll":fsSlots().forEach(fsLog);break;
+    case"hackEat":{const x=KP.H[Number(v)];addMeal(todayStr(),"s",{name:KPL(x.n),q:"",k:x.k,p:x.p,c:x.c,f:x.f});break}
     case"flowClose":S.flow=null;drawFlow();break;
     case"coachDay":{const mc=S.profile.myCoach;if(!mc)break;const d=t.dataset.d||S.date,note=(S.ui.msgDraft||"").trim(),txt=(note?note+"\n\n":"")+(S.ui.flRep===false?"":waReportText(d));
       if(!txt.trim()){toast("اكتب رسالة أو سيب تفاصيل اليوم متعلّم");break}
@@ -1308,6 +1372,7 @@ function act(name,t){
 function onInput(t,commit){
   const k=t.dataset.in,sh=S.sheet;
   switch(k){
+    case"fsb":if(S.fs)S.fs.budget=t.value;break;
     case"q":if(sh){sh.q=t.value;paintList()}break;
     case"gv":if(sh){sh.v=Number(t.value)||0;const e=$("#emac");if(e)e.textContent=emacHtml()}break;
     case"bcvn":if(sh&&sh.bl){sh.bl.cvn=t.value;const e=$("#bmac");if(e)e.textContent=bPrevText()}break;

@@ -1,6 +1,6 @@
 /* Offline shell + stale-while-revalidate for CDN assets. Bump VERSION on each release. */
-const VERSION = "kochi-v53";
-const SHELL = ["./", "index.html", "style.css", "app.js", "i18n.js", "i18n-en.js", "foods.js", "recipes.js", "firebase-config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
+const VERSION = "kochi-v54";
+const SHELL = ["./", "index.html", "style.css", "app.js", "i18n.js", "i18n-en.js", "foods.js", "prices.js", "recipes.js", "firebase-config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 const CDN = ["www.gstatic.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
