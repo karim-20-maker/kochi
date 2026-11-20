@@ -416,50 +416,31 @@ html[data-theme="dark"] .slc{background:var(--surface)}
 .sq .mscot{top:0;width:76%}
 .sq.suggest .sqb{background:linear-gradient(rgba(255,244,222,0),rgba(255,244,222,.97) 38%);padding-top:14px}
 .sq.tipsq .sqb{background:linear-gradient(rgba(232,240,255,0),rgba(232,240,255,.97) 38%);padding-top:14px}
-/* food layout v2 */
-.frow{display:flex;flex-direction:column;gap:12px}
-.fgrid{order:1}.infoban{order:2}.hackc{order:3}.favc{order:4}
-.sq.dsk{display:none}
-.sq.itemsq{background:radial-gradient(120% 90% at 50% 0%,#d1fae5,#6ee7b7 60%,#10b981);color:#064e3b}
-.sq.itemsq .sqb{background:linear-gradient(rgba(220,252,231,0),rgba(220,252,231,.97) 38%);padding-top:14px}
-.infoban{display:flex;align-items:center;gap:12px;border:0;border-radius:18px;padding:8px 14px;background:linear-gradient(120deg,#e0f2fe,#c7d2fe);color:#10205a;box-shadow:0 8px 18px -10px rgba(0,0,0,.35);cursor:pointer;font-family:inherit;text-align:start}
-.infoban .ibi{flex:none;width:46px}.infoban .ibi svg{width:100%;height:auto;display:block}
-.infoban b{display:block;font-size:15px;font-weight:800}.infoban small{font-size:12px;font-weight:700;opacity:.8}
-.viewer.tall{height:92vh;max-height:92vh;max-width:560px}
+/* food layout v3 */
+.frow{display:flex;flex-direction:column;gap:14px;width:100%;min-width:0}
+.frow>*{min-width:0;max-width:100%}
+.fleft{display:flex;flex-direction:column;gap:14px;min-width:0}
+.fhero{display:flex;align-items:center;gap:6px;border-radius:26px;padding:12px 16px 12px 10px;background:radial-gradient(120% 120% at 20% 0%,#ffe9a8,#ffb347 55%,#ff8a3d);box-shadow:0 12px 26px -12px rgba(255,120,30,.7);color:#4a2a07;overflow:hidden}
+.fhch{flex:none;width:44%;max-width:190px}.fhch .anm{width:100%;height:auto;display:block;overflow:visible;position:static;transform:none}
+.fhb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.fhb h2{margin:0;font-size:22px;color:#4a2a07}.fhb .sub{color:#6b3f0f;margin:0}
+.fhb .row{display:flex;flex-wrap:wrap;gap:8px}.fhb .btn{flex:1 1 auto;min-width:0;padding-inline:10px;background:#7c2d12;color:#fff}
+.ftd{margin:0}
+.ftn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.ftn>div{background:color-mix(in srgb,var(--c) 12%,var(--surface));border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;gap:2px}
+.ftn b{font-size:22px;font-weight:800}.ftn span{font-size:11.5px;color:var(--muted)}
+.schips{display:flex;flex-wrap:wrap;gap:8px}
+.schip{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:8px 12px;font-family:inherit;font-size:14px;cursor:pointer;box-shadow:0 4px 10px -6px rgba(0,0,0,.3)}
+.schip i{font-style:normal;font-weight:800;color:var(--accent);margin-inline-start:2px}.schip.on{background:var(--accent-soft);border-color:var(--accent)}
+.qrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-radius:20px;padding:12px 8px;min-height:112px;cursor:pointer;font-family:inherit;box-shadow:0 8px 18px -10px rgba(0,0,0,.35)}
+.qt.items{background:linear-gradient(145deg,#d1fae5,#6ee7b7);color:#064e3b}.qt.favs{background:linear-gradient(145deg,#fef3c7,#fcd34d);color:#78350f}
+.qt b{font-size:15px;font-weight:800}.qt small{position:absolute;top:8px;inset-inline-end:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;padding:1px 9px;font-size:12px;font-weight:700}
+.qti{font-size:34px;line-height:1;display:block;height:44px}.qti svg{height:44px;width:auto}
+.hackc{margin:0;width:100%}
 @media (min-width:1000px){
-  .frow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:stretch}
-  .fgrid{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none;margin:0}
-  .sq.dsk{display:flex}.infoban{display:none}
-  .fgrid{order:0}.hackc{order:1;grid-column:1;grid-row:2;margin:0}.favc{order:2;grid-column:2;grid-row:2;margin:0}
-  .sq{aspect-ratio:1/1}
+  .frow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:stretch}
+  .fhch{max-width:210px}
 }
-
-.sq.suggest .sqb b{color:#4a2a07}.sq.suggest .sqb small{color:#6b3f0f;opacity:1}
-.sq.tipsq .sqb b{color:#10205a}.sq.tipsq .sqb small{color:#27388a;opacity:1}
-.sq.itemsq .sqb b{color:#064e3b}.sq.itemsq .sqb small{color:#0b6b52;opacity:1}
-.frow{width:100%;min-width:0}.frow>*{min-width:0;max-width:100%}.fgrid{width:100%}.infoban{width:100%}
-.favc,.hackc{width:100%;align-self:stretch}
-
-@media (min-width:1000px){.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:760px}}
-
-.sq .mgif{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;z-index:1;border-radius:inherit}
-.sq.suggest .sqb{z-index:2}
-.sq .mgif{object-position:48% 0}
-
-.sq .anm{position:absolute;top:0;left:50%;transform:translateX(-50%);width:92%;height:auto;overflow:visible}
-.ag-bob{animation:agbob 1.6s ease-in-out infinite;transform-origin:100px 190px}
-.ag-eo{animation:ageo 1.6s infinite}.ag-ec{opacity:0;animation:agec 1.6s infinite}
-.ag-ch{animation:agch .8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
-.ag-mo{animation:agmo .8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
-.ag-food{animation:agfd 1.6s ease-in-out infinite}
-.ag-cr circle{animation:agcr 1.6s ease-in infinite}.ag-cr circle:nth-child(2){animation-delay:.3s}.ag-cr circle:nth-child(3){animation-delay:.6s}
-.ag-sp g{animation:mtw 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.ag-sp .s2{animation-delay:.5s}.ag-sp .s3{animation-delay:.9s}
-@keyframes agbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(1.2deg)}}
-@keyframes ageo{0%,35%,100%{opacity:1}45%,85%{opacity:0}}
-@keyframes agec{0%,35%,100%{opacity:0}45%,85%{opacity:1}}
-@keyframes agch{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
-@keyframes agmo{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
-@keyframes agfd{0%,25%{transform:translateY(0)}40%,55%{transform:translateY(-14px)}75%,100%{transform:translateY(0)}}
-@keyframes agcr{0%,40%{opacity:0;transform:translateY(0)}55%{opacity:1}100%{opacity:0;transform:translateY(34px)}}
-@media (prefers-reduced-motion:reduce){.ag-bob,.ag-eo,.ag-ec,.ag-ch,.ag-mo,.ag-food,.ag-cr circle,.ag-sp g{animation:none}}
-.sq .anm{width:80%;top:-2%}.sq.suggest .sqb{padding-top:6px}
+.viewer.tall{height:92vh;max-height:92vh;max-width:560px}
+.sq,.fgrid{}

@@ -550,15 +550,23 @@ function itemsDoc(){
     +'<div class="grid2">'+ci("n","اسم المنتج","مثلا: بسكويت دايجستف")+ci("k","سعرات /100جم")+ci("p","بروتين")+ci("c","كارب")+ci("f","دهون")+ci("u","وزن الحصة (جم، اختياري)")+'</div><button class="btn" data-act="cfAdd">أضف الصنف</button><button class="btn ghost" data-act="flowClose">إغلاق</button>'}
 const ITEMS_ART='<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="108" rx="34" ry="6" fill="#000" opacity=".2"/><path d="M30 44h60l-6 58H36z" fill="#fff7e6" stroke="#d99a00" stroke-width="3" stroke-linejoin="round"/><path d="M44 44q0-22 16-22t16 22" fill="none" stroke="#d99a00" stroke-width="4" stroke-linecap="round"/><rect x="42" y="60" width="36" height="24" rx="5" fill="#fff" stroke="#e5c27a" stroke-width="2"/><path d="M48 66v12M54 66v12M58 66v12M64 66v12M70 66v12" stroke="#334155" stroke-width="2.4"/><circle cx="92" cy="30" r="9" fill="#22c55e"/><path d="M92 25v10M87 30h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 function viewFood(){
-  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
+  const date=S.date,day=peek(date),tot=totals(day),tg=targetsFor(date);
   const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
-  const fe=favEnts(),fshow=fe.slice(0,3).join("");
-  h+='<div class="frow span">'
-    +'<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.anime+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
-    +'<button class="sq itemsq" data-act="docOpen" data-v="i" aria-label="أصنافي"><span class="sqi" aria-hidden="true">'+ITEMS_ART+'</span><span class="sqb"><b>أصنافي</b><small>ضيف منتجاتك</small></span></button>'
+  const fe=favEnts(),ncf=(S.profile.cf||[]).length;
+  const rk=Math.round(tg.kcal-tot.k),rp=Math.round(tg.protein-tot.p);
+  const SO=[["b","الفطار"],["p","قبل التمرين"],["l","الغدا"],["d","العشا"],["s","سناك"]],act=activeSlots(date);
+  const chips=SO.filter(x=>act.indexOf(x[0])>=0||(day.meals||[]).some(m=>m.slot===x[0])).map(x=>{const on=(day.meals||[]).some(m=>m.slot===x[0]);
+    return '<button class="schip'+(on?" on":"")+'" data-act="openSheet" data-v="'+x[0]+'" data-t="list"><span aria-hidden="true">'+SLE[x[0]][0]+'</span><b>'+x[1]+'</b><i>'+(on?"✓":"+")+'</i></button>'}).join("");
+  let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، سجّل، واطبخ دايت.</p></div></header>';
+  h+='<div class="frow span"><div class="fleft">'
+    +'<section class="fhero"><div class="fhch">'+KA.anime+'</div><div class="fhb"><h2>اقترحلي أكل</h2><p class="sub">ياممي واو! وجبة أو يوم كامل، بميزانيتك أو فري بادجت.</p><div class="row"><button class="btn" data-act="fsOpen" data-v="meal">وجبة واحدة</button><button class="btn" data-act="fsOpen" data-v="day">اليوم كله</button></div></div></section>'
+    +'<section class="card fcd ftd" style="--c:#16a34a"><div class="fch"><span class="fce" aria-hidden="true">🍽️</span><div class="min0"><h2>أكل '+esc(dayTitle(date))+'</h2><p class="sub">دوس على الوجبة عشان تسجّل فيها.</p></div></div>'
+    +'<div class="ftn"><div><b class="num">'+(rk>0?rk:0)+'</b><span>سعر باقي</span></div><div><b class="num">'+(rp>0?rp:0)+'</b><span>بروتين باقي</span></div><div><b class="num">'+r0(tot.k)+'</b><span>سعر اتاكلت</span></div></div>'
+    +'<div class="schips">'+chips+'</div></section>'
+    +'<div class="qrow"><button class="qt items" data-act="docOpen" data-v="i"><span class="qti" aria-hidden="true">'+ITEMS_ART+'</span><b>أصنافي</b><small class="num">'+ncf+'</small></button>'
+    +'<button class="qt favs" data-act="docOpen" data-v="f"><span class="qti" aria-hidden="true">⭐</span><b>وجباتي المفضلة</b><small class="num">'+fe.length+'</small></button></div>'
     +'</div>'
     +fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw)).replace('class="card fcd"','class="card fcd hackc"')
-    +fcard('⭐','#eab308','وجباتي المفضلة','','<p class="sub">وجباتك المحفوظة من "يلا نطبخ".</p>'+(fshow||'<p class="hint">لسه مفيش وجبات محفوظة.</p>')+(fe.length>3?'<button class="btn ghost sm" data-act="docOpen" data-v="f">عرض الكل ('+fe.length+')</button>':"")).replace('class="card fcd"','class="card fcd favc"')
     +'</div>';
   return h;
 }
@@ -1372,7 +1380,7 @@ function act(name,t){
       S.profile.sl={asleep:true,day:d,at:n.getTime()};saveProfile();
       S.rmOpen=null;drawRem();S.wakeAsked=true;S.flow={k:"report",date:d};drawFlow();render();break}
     case"docOpen":S.flow={k:"doc",id:v};drawFlow();break;
-    case"fsOpen":S.fs={idx:{}};S.flow={k:"sug"};drawFlow();break;
+    case"fsOpen":S.fs={idx:{}};if(v==="meal"||v==="day")S.fs.scope=v;S.flow={k:"sug"};drawFlow();break;
     case"fsScope":S.fs.scope=v;S.fs.slot=null;S.fs.mode=null;drawFlow();break;
     case"fsSlot":S.fs.slot=v;drawFlow();break;
     case"fsBack":if(S.fs.mode)S.fs.mode=null;else if(S.fs.slot)S.fs.slot=null;else S.fs.scope=null;drawFlow();break;
