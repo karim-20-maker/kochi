@@ -439,3 +439,5 @@ html[data-theme="dark"] .slc{background:var(--surface)}
 .sq.itemsq .sqb b{color:#064e3b}.sq.itemsq .sqb small{color:#0b6b52;opacity:1}
 .frow{width:100%;min-width:0}.frow>*{min-width:0;max-width:100%}.fgrid{width:100%}.infoban{width:100%}
 .favc,.hackc{width:100%;align-self:stretch}
+
+@media (min-width:1000px){.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;max-width:760px}}

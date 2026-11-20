@@ -553,12 +553,10 @@ function viewFood(){
   let h='<header class="top"><div class="min0"><h1>الأكل</h1><p class="sub">اقترح، اطبخ دايت، وسجّل بسهولة.</p></div></header>';
   const sv=[],sw=[];KP.H.forEach((_,i)=>{((KA.HA[i]||[])[3]==="d"?sw:sv).push(hackSlide(i))});
   const fe=favEnts(),fshow=fe.slice(0,3).join("");
-  const tipsBtn='<button class="sq tipsq" data-act="tab" data-v="info" aria-label="معلومات"><span class="sqi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="sqb"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button>';
   h+='<div class="frow span">'
     +'<div class="fgrid"><button class="sq suggest" data-act="fsOpen" aria-label="اقترحلي أكل">'+KA.mascot+'<span class="sqb"><b>اقترحلي أكل</b><small>ياممي واو!</small></span></button>'
     +'<button class="sq itemsq" data-act="docOpen" data-v="i" aria-label="أصنافي"><span class="sqi" aria-hidden="true">'+ITEMS_ART+'</span><span class="sqb"><b>أصنافي</b><small>ضيف منتجاتك</small></span></button>'
-    +tipsBtn.replace('class="sq tipsq"','class="sq tipsq dsk"')+'</div>'
-    +'<button class="infoban" data-act="tab" data-v="info"><span class="ibi" aria-hidden="true">'+KA.PROD.tips+'</span><span class="min0"><b>معلومات ونصايح</b><small>أسعار وصوصات ونصايح</small></span></button>'
+    +'</div>'
     +fcard("🔥","#ef4444","هاكرز الدايت","وصفات دايت دلع بسعرات قليلة. اسحب واختار.",'<p class="lb">أكل شهي</p>'+slider(sv)+'<p class="lb">حلويات ومشروبات</p>'+slider(sw)).replace('class="card fcd"','class="card fcd hackc"')
     +fcard('⭐','#eab308','وجباتي المفضلة','','<p class="sub">وجباتك المحفوظة من "يلا نطبخ".</p>'+(fshow||'<p class="hint">لسه مفيش وجبات محفوظة.</p>')+(fe.length>3?'<button class="btn ghost sm" data-act="docOpen" data-v="f">عرض الكل ('+fe.length+')</button>':"")).replace('class="card fcd"','class="card fcd favc"')
     +'</div>';
