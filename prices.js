@@ -123,7 +123,7 @@ var PR={beefm:"meat",beefc:"meat",liver:"meat",chb:"chicken",cht:"chicken",bolti
 function prots(m){var o={};m[2].forEach(function(a){if(PR[a[0]])o[PR[a[0]]]=1});return o}
 function options(slot,T,B,pf){
   var all=M.filter(function(m){return m[0]===slot}),a=all;
-  if(pf&&pf.length&&(slot==="l"||slot==="d")){var f=all.filter(function(m){var o=prots(m);return pf.some(function(x){return o[x]})});if(f.length)a=f}
+  if(pf&&pf.length){var sub=all.filter(function(m){var o=prots(m),ks=Object.keys(o);return ks.every(function(x){return pf.indexOf(x)>=0})&&((slot!=="l"&&slot!=="d")||ks.length)});if(sub.length)a=sub}
   a=a.map(function(m){return best(m,T,B)});
   var ok=a.filter(function(x){return !x.over});
   if(!ok.length){a.sort(function(x,y){return x.cost-y.cost});return a}
