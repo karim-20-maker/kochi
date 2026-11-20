@@ -331,7 +331,8 @@ function viewToday(){
   let h='<header class="top"><div class="min0"><h1>'+dayTitle(date)+'</h1><p class="sub">'+esc(dayKind(date))+'</p></div><div class="dnav">'
    +'<button class="ib" data-act="dprev" aria-label="اليوم اللي قبله">'+chev(true)+'</button>'
    +(isToday?"":'<button class="ib" data-act="dtoday" aria-label="رجوع للنهاردة">اليوم</button>')
-   +'<button class="ib" data-act="dnext" aria-label="اليوم اللي بعده">'+chev(false)+'</button></div></header>';
+   +'<button class="ib" data-act="dnext" aria-label="اليوم اللي بعده">'+chev(false)+'</button><button class="ib" data-act="rstAsk" aria-label="ريسيت اليوم">↺ ريسيت</button></div></header>';
+  if(S.ui.rst===date)h+='<div class="plan"><span class="pn">تمسح كل اللي اتسجل في اليوم ده؟</span><p class="sub">الأكل والمياه والنوم والخطوات والتمرين. مش هترجع تاني.</p><div class="row"><button class="btn sm" data-act="rstYes">اه، امسح</button><button class="btn ghost sm" data-act="rstNo">لا</button></div></div>';
   const sumCard=card('<div class="sumrow">'+ring(tot.k,tg.kcal)+'<div class="macros">'+mrow("بروتين",tot.p,tg.protein,"--protein")+mrow("كارب",tot.c,tg.carbs,"--carb")+mrow("دهون",tot.f,tg.fat,"--fat")+'</div></div>'
     +'<p class="hint">هدف اليوم '+tg.kcal+' سعر ('+(isTrainDay(date)?"يوم تمرين":"يوم راحة")+'). الأرقام تقريبية، المهم الاستمرار.</p>');
   const remainH=remainHtml(res,tg,date);
@@ -347,7 +348,7 @@ function viewToday(){
   const mins=day.mins||0,burn=(day.tType&&day.tType!=="rest"&&mins>0)?r0((MET[day.tType]||5)*curWeight()*mins/60):0;
   const tmode=day.tType==="rest"?"rest":(day.tType||S.ui.tOpen===date)?"train":"";
   const chip=t=>'<button class="chip" aria-pressed="'+(day.tType===t)+'" data-act="ttype" data-v="'+t+'">'+TT[t]+'</button>';
-  const rstB=S.ui.rst===S.date?'<div class="plan"><span class="pn">تمسح كل اللي اتسجل في اليوم ده؟</span><p class="sub">الأكل والمياه والنوم والخطوات والتمرين. مش هترجع تاني.</p><div class="row"><button class="btn sm" data-act="rstYes">اه، امسح</button><button class="btn ghost sm" data-act="rstNo">لا</button></div></div>':'<button class="btn ghost sm" data-act="rstAsk">ريسيت اليوم (لو سجلت بالغلط)</button>';
+  const rstB="";
   const trSeg='<div class="seg2"><button class="chip'+((!tmode&&sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="train")+'" data-act="tmode" data-v="train">تمرين</button><button class="chip'+((!tmode&&!sug.train)?" sug":"")+'" aria-pressed="'+(tmode==="rest")+'" data-act="tmode" data-v="rest">راحة</button></div>';
   const trTypes=(tmode==="train"?'<p class="lb">اختار التمرين:</p><div class="chips">'+main.map(chip).join("")+(more.length?'<button class="chip" data-act="moreAct">'+(S.ui.moreAct?"أقل":"+ تمارين تانية")+'</button>':"")+'</div>'
     +(S.ui.moreAct?'<div class="chips">'+more.map(chip).join("")+'</div>':""):"");
